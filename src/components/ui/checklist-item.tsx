@@ -1,4 +1,4 @@
-import type { ChecklistItemProps } from "@/types/schedule";
+import type { ChecklistItemProps } from "@/lib/types";
 import { FileUpload } from "./file-upload";
 import { CheckCircle2 } from "lucide-react";
 

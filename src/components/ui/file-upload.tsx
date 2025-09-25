@@ -1,7 +1,7 @@
 "use client"
 import { useState, useRef, useCallback } from "react"
 import { Upload } from "lucide-react"
-import type { FileUploadProps } from "@/types/schedule"
+import type { FileUploadProps } from "@/lib/types"
 
 const ACCEPTED_FILE_TYPES = [".csv"] as const
 const MB = 50

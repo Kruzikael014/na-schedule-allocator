@@ -2,7 +2,7 @@
 import { Upload } from "lucide-react"
 import { CardContent, Card, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
-import type { ChecklistItemProps, UploadSectionProps } from "@/types/schedule"
+import type { ChecklistItemProps, UploadSectionProps } from "@/lib/types"
 import { memo } from "react"
 import { ChecklistItem } from "../ui/checklist-item"
 

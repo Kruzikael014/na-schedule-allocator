@@ -2,14 +2,14 @@ import { useState, useCallback } from 'react'
 import './App.css'
 import { Header } from "./components/sections/header"
 import { UploadSection } from './components/sections/upload-section'
-// import { ScheduleTable } from './components/sections/schedule-table'
-import type { UploadedFiles } from './types/schedule'
+import type { ActivityData, UploadedFiles } from './lib/types'
+import { ScheduleTable } from './components/sections/schedule-table'
 
 function App() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("ODD 2024/2025")
   const [files, setFiles] = useState<UploadedFiles>({})
   const [hasAllocated, setHasAllocated] = useState<boolean>(false)
-  const [allocatedSchedule, setAllocatedSchedule] = useState<any>()
+  const [schedule, setSchedule] = useState<ActivityData[]>()
 
   const handlePeriodChange = useCallback((period: string) => setSelectedPeriod(period), [])
 
@@ -32,10 +32,10 @@ function App() {
         onAllocate={handleAllocate}
       />
 
-      {/* {
-        allocatedSchedule &&
-        <ScheduleTable props={allocatedSchedule} />
-      } */}
+      {
+        schedule &&
+        <ScheduleTable data={schedule} />
+      }
 
     </main>
   </div>

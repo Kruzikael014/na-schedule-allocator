@@ -1,8 +1,8 @@
 "use client"
 import { Calendar, Sparkles } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PERIODS } from "@/constants/schedule"
-import type { HeaderProps } from "@/types/schedule"
+import { PERIODS } from "@/lib/constants"
+import type { HeaderProps } from "@/lib/types"
 
 export function Header({ selectedPeriod, onPeriodChange }: HeaderProps) {
   return (
