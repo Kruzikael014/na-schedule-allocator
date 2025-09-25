@@ -1,21 +1,16 @@
 "use client"
 import { Upload } from "lucide-react"
-import type { UploadSectionProps } from "@/types/schedule"
 import { CardContent, Card, CardHeader, CardTitle } from "../ui/card"
-import { FileUpload } from "../ui/file-upload"
 import { Button } from "../ui/button"
+import type { ChecklistItemProps, UploadSectionProps } from "@/types/schedule"
+import { memo } from "react"
+import { ChecklistItem } from "../ui/checklist-item"
 
-export function UploadSection(props: UploadSectionProps) {
-  const {
-    transactionFile,
-    hasAllocated,
-    onAllocate,
-    onTransactionFileUploaded,
-    onScheduleFileUploaded,
-    scheduleFile,
-    onRoomPicFileUploaded,
-    roomPicFile
-  } = props
+export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: UploadSectionProps) {
+  const { shiftFile, roomPicFile, teachingCollegeFile, transactionFile } = files
+  const [setShiftFile, setRoomPicFile, setTeachingCollegeFile, setTransactionFile] = setFiles
+
+  const MemoizedChecklistItem = memo((props: ChecklistItemProps) => (<ChecklistItem {...props} />))
 
   return (
     <div className="flex justify-center">
@@ -29,73 +24,57 @@ export function UploadSection(props: UploadSectionProps) {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          <p className="text-muted-foreground leading-relaxed text-center">
-            1. Upload schedule data. Only support CSV format.
-          </p>
-
           <div className="space-y-4">
-            <div className="flex justify-center">
-              <FileUpload onFileUpload={onScheduleFileUploaded} />
-            </div>
-
-            <div className="flex flex-col items-center gap-4">
-              {scheduleFile && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg">
-                  <div className="w-2 h-2 bg-chart-2 rounded-full"></div>
-                  Ready: {scheduleFile.name}
-                </div>
-              )}
-            </div>
+            <MemoizedChecklistItem
+              stepNumber={1}
+              label="Upload Working Shift data. Only support csv."
+              completed={!!shiftFile}
+              fileName={shiftFile?.name}
+              showUpload={!!shiftFile === true ? false : true}
+              onFileUpload={setShiftFile}
+            />
+            <MemoizedChecklistItem
+              stepNumber={2}
+              label="Upload Room-PIC data. Only support csv."
+              completed={!!roomPicFile}
+              fileName={roomPicFile?.name}
+              showUpload={!!shiftFile && !!roomPicFile === false}
+              onFileUpload={setRoomPicFile}
+            />
+            <MemoizedChecklistItem
+              stepNumber={3}
+              label="Upload Teaching-College data. Only support csv."
+              completed={!!teachingCollegeFile}
+              fileName={teachingCollegeFile?.name}
+              onFileUpload={setTeachingCollegeFile}
+              showUpload={!!roomPicFile && !!teachingCollegeFile === false}
+            />
+            <MemoizedChecklistItem
+              stepNumber={4}
+              label="Upload Class Transaction data. Only support csv."
+              completed={!!transactionFile}
+              fileName={transactionFile?.name}
+              onFileUpload={setTransactionFile}
+              showUpload={!!teachingCollegeFile && !!transactionFile === false}
+            />
+            <ChecklistItem
+              stepNumber={5}
+              completed={!!shiftFile && !!roomPicFile && !!teachingCollegeFile && !!transactionFile}
+              label="Ready to Allocate"
+              disabled={!shiftFile || !roomPicFile || !teachingCollegeFile || !transactionFile}
+            />
           </div>
         </CardContent>
-        <CardContent className="space-y-6">
-          <p className="text-muted-foreground leading-relaxed text-center">
-            2. Upload class transaction data. Only support CSV format.
-          </p>
+        <div className="flex flex-col items-center gap-4">
+          <Button
+            onClick={onAllocate}
+            disabled={!shiftFile}
+            className="hover:cursor-pointer bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground px-8 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {hasAllocated ? "Reallocate" : "Allocate"}
+          </Button>
+        </div>
 
-          <div className="space-y-4">
-            <div className="flex justify-center">
-              <FileUpload onFileUpload={onTransactionFileUploaded} />
-            </div>
-
-            <div className="flex flex-col items-center gap-4">
-              {transactionFile && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg">
-                  <div className="w-2 h-2 bg-chart-2 rounded-full"></div>
-                  Ready: {transactionFile.name}
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-
-        <CardContent className="space-y-6">
-          <p className="text-muted-foreground leading-relaxed text-center">
-            3. Upload Room-PIC data. Only support CSV format.
-          </p>
-
-          <div className="space-y-4">
-            <div className="flex justify-center">
-              <FileUpload onFileUpload={onRoomPicFileUploaded} />
-            </div>
-
-            <div className="flex flex-col items-center gap-4">
-              {roomPicFile && (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg">
-                  <div className="w-2 h-2 bg-chart-2 rounded-full"></div>
-                  Ready: {roomPicFile.name}
-                </div>
-              )}
-              <Button
-                onClick={onAllocate}
-                disabled={!transactionFile || !scheduleFile || !roomPicFile}
-                className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground px-8 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {hasAllocated ? "Reallocate" : "Allocate"}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
       </Card>
     </div>
   )

@@ -1,62 +1,40 @@
 
-export interface HeaderProps {
-  selectedPeriod: string
-  onPeriodChange: (period: string) => void
-};
-
-export interface UploadSectionProps {
-  scheduleFile: File | null
-  onScheduleFileUploaded: (file: File) => void
-  transactionFile: File | null
-  onTransactionFileUploaded: (file: File) => void
-  roomPicFile: File | null
-  onRoomPicFileUploaded: (file: File) => void
-  hasAllocated: boolean
-  onAllocate: () => void
-};
-
-export interface FileUploadProps {
-  onFileUpload: (file: File) => void
-};
-
-export interface ScheduleTableProps {
-  pics: string[]
-  timeCellData: TimeCellData[]
+type UploadedFiles = {
+  shiftFile?: File
+  roomPicFile?: File
+  teachingCollegeFile?: File
+  transactionFile?: File
 }
 
-export type TimeCellData = {
-  description: string
-  room: string | null
-  day: string
-  shift: string
-  PIC: string
-  code: number
-};
+type Division = 'NetSys' | 'Software' | 'Event' | 'Asset'
 
-export type ActivityLegend = {
+type Team = 'A' | 'B'
+
+type WorkingShift = 'P' | 'M'
+
+type ActivityLegend = {
   code: number
   description: string
   color: string
   textColor: string
 }
 
-export type RoomPicData = {
-  pic: string
-  room: string[]
+interface UploadSectionProps {
+  files: UploadedFiles
+  setFiles: ((file: File) => void)[]
+  hasAllocated: boolean
+  onAllocate: () => void
 }
 
-export type TransactionData = {
-  room: string
-  transaction: {
-    day: string
-    shift: string
-    available: boolean
-  }[]
+interface ChecklistItemProps {
+  stepNumber: number
+  completed: boolean
+  label: string
+  fileName?: string
+  showUpload?: boolean
+  onFileUpload?: (file: File) => void
+  disabled?: boolean
 }
 
-export type CalibShiftAvailability = {
-  day: String
-  shift: String
-  staffAvailableCount: number
-  staffAvailable: string[]
-}
+export type { UploadedFiles, Division, Team, WorkingShift, ActivityLegend }
+export type { UploadSectionProps, ChecklistItemProps }

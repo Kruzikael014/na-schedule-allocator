@@ -2,44 +2,40 @@ import { useState, useCallback } from 'react'
 import './App.css'
 import { Header } from "./components/sections/header"
 import { UploadSection } from './components/sections/upload-section'
-import { ScheduleTable } from './components/sections/schedule-table'
-
+// import { ScheduleTable } from './components/sections/schedule-table'
+import type { UploadedFiles } from './types/schedule'
 
 function App() {
   const [selectedPeriod, setSelectedPeriod] = useState<string>("ODD 2024/2025")
+  const [files, setFiles] = useState<UploadedFiles>({})
   const [hasAllocated, setHasAllocated] = useState<boolean>(false)
-  const [scheduleFile, setScheduleFile] = useState<File | null>(null)
-  const [transactionFile, setTransactionFile] = useState<File | null>(null)
-  const [roomPicFile, setRoomPicFile] = useState<File | null>(null)
-  const [allocatedSchedule, setAllocatedSchedule] = useState<ScheduleTableProps>()
+  const [allocatedSchedule, setAllocatedSchedule] = useState<any>()
 
   const handlePeriodChange = useCallback((period: string) => setSelectedPeriod(period), [])
-  const handleScheduleFileUpload = useCallback((file: File) => setScheduleFile(file), [])
-  const handleTransactionFileUpload = useCallback((file: File) => setTransactionFile(file), [])
-  const handleRoomPicFileUpload = useCallback((file: File) => setRoomPicFile(file), [])
+
+  const setShiftFile = useCallback((file: File) => setFiles(prev => ({ ...prev, shiftFile: file })), [])
+  const setRoomPicFile = useCallback((file: File) => setFiles(prev => ({ ...prev, roomPicFile: file })), [])
+  const setTeachingCollegeFile = useCallback((file: File) => setFiles(prev => ({ ...prev, teachingCollegeFile: file })), [])
+  const setTransactionFile = useCallback((file: File) => setFiles(prev => ({ ...prev, transactionFile: file })), [])
 
   const handleAllocate = useCallback(async () => {
-    
+
   }, []);
 
   return <div className='min-h-screen bg-background'>
     <Header onPeriodChange={handlePeriodChange} selectedPeriod={selectedPeriod} />
     <main className='container mx-auto px-6 py-8 space-y-8'>
       <UploadSection
-        onScheduleFileUploaded={handleScheduleFileUpload}
-        onTransactionFileUploaded={handleTransactionFileUpload}
-        scheduleFile={scheduleFile}
-        transactionFile={transactionFile}
-        roomPicFile={roomPicFile}
-        onRoomPicFileUploaded={handleRoomPicFileUpload}
+        files={files}
+        setFiles={[setShiftFile, setRoomPicFile, setTeachingCollegeFile, setTransactionFile]}
         hasAllocated={hasAllocated}
         onAllocate={handleAllocate}
       />
 
-      {
+      {/* {
         allocatedSchedule &&
         <ScheduleTable props={allocatedSchedule} />
-      }
+      } */}
 
     </main>
   </div>
