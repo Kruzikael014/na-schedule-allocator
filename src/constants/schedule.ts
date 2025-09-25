@@ -1,0 +1,55 @@
+import type { ActivityLegend } from "@/types/schedule";
+
+export const PERIODS: string[] = [
+  'ODD 2024/2025',
+  'EVEN 2024/2025',
+  'SHORT 2025',
+];
+
+export const ACTIVITY_LEGENDS: ActivityLegend[] = [
+  { code: 21, description: "Class", color: "#fef9e7", textColor: "#a16207" },
+  { code: 22, description: "Teaching", color: "#faf5ff", textColor: "#9333ea" },
+  { code: 99, description: "Working", color: "#f0f9ff", textColor: "#0369a1" },
+  { code: 120, description: "Class", color: "#fef9e7", textColor: "#a16207" },
+  { code: 121, description: "Teaching", color: "#faf5ff", textColor: "#9333ea" },
+  { code: 122, description: "Calibration", color: "#f0fdf4", textColor: "#16a34a" },
+  { code: 123, description: "Standby", color: "#fef2f2", textColor: "#dc2626" },
+]
+
+export const ROOMS: string[] = [
+  '601',
+  '602',
+  '603',
+  '604',
+  '605',
+  '606',
+  '608',
+  '609',
+  '610',
+  '613',
+  '614',
+  '621',
+  '622',
+  '623',
+  '624',
+  '625',
+  '626',
+  '627',
+  '628',
+  '629',
+  '630',
+  '631',
+  '706',
+  '708',
+  '710',
+  '711A',
+  '721',
+  '722',
+  '723',
+  '724',
+  '725',
+  '727',
+  '729',
+  '730',
+  '731',
+]
