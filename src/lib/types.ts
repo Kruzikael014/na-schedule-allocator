@@ -10,7 +10,19 @@ type Division = 'NetSys' | 'Software' | 'Event' | 'Asset'
 
 type Team = 'A' | 'B'
 
-type WorkingShift = 'P' | 'M'
+type ShiftCategory = 'P' | 'M'
+
+type WorkingShiftData = {
+  initial: string
+  shifts: ShiftCategory[]
+  division: string
+  team: string
+}
+
+type RoomPicData = {
+  initial: string
+  room: string
+}
 
 type ActivityLegend = {
   code: number
@@ -24,7 +36,7 @@ type ActivityData = {
   room: string | null
   day: string
   shift: string
-  PIC: string
+  pic: string
   code: number
 }
 
@@ -49,5 +61,5 @@ interface ScheduleTableProps {
   data: ActivityData[]
 }
 
-export type { UploadedFiles, Division, Team, WorkingShift, ActivityData, ActivityLegend }
+export type { UploadedFiles, Division, Team, ShiftCategory, ActivityData, ActivityLegend, WorkingShiftData }
 export type { UploadSectionProps, ChecklistItemProps, ScheduleTableProps }

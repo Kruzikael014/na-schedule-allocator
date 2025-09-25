@@ -5,7 +5,7 @@ import { Card } from "../ui/card";
 export function ScheduleTable({ data }: ScheduleTableProps) {
   const days = Array.from({ length: 6 }, (_, i) => String(i + 1))
   const shifts = Array.from({ length: 6 }, (_, i) => String(i + 1))
-  const pics = [...new Set(data.splice(0, 100).map(t => t.PIC))].sort((a, b) => a < b ? -1 : 1)
+  const pics = [...new Set(data.map(t => t.pic))].sort((a, b) => a < b ? -1 : 1)
   const getCellStyle = (code: number) => {
     const legend = ACTIVITY_LEGENDS.find((l) => l.code === code)
     if (!legend) return "bg-card border border-border/30"
@@ -68,7 +68,7 @@ export function ScheduleTable({ data }: ScheduleTableProps) {
                     shifts.map((shift, shiftIdx) => {
                       const key = `${day}-${shift}`
                       const totalCode = data
-                        .filter(e => e.PIC === pic && e.day === day && e.shift === shift)
+                        .filter(e => e.pic === pic && e.day === day && e.shift === shift)
                         .reduce((sum, curr) => Number(sum) + Number(curr.code), 0);
                       const style = getCellStyle(totalCode)
 
