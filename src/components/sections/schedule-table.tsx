@@ -2,8 +2,9 @@ import { ACTIVITY_LEGENDS } from "@/constants/schedule";
 import type { ScheduleTableProps } from "@/types/schedule";
 import { Card } from "../ui/card";
 
-export function ScheduleTable({ props: { days, pics, shifts, timeCellData } }: { props: ScheduleTableProps }) {
-  console.log('kiw', pics)
+export function ScheduleTable({ props: { pics, timeCellData } }: { props: ScheduleTableProps }) {
+  const days = Array.from({ length: 6 }, (_, i) => String(i + 1))
+  const shifts = Array.from({ length: 6 }, (_, i) => String(i + 1))
   const getCellStyle = (code: number) => {
     const legend = ACTIVITY_LEGENDS.find((l) => l.code === code)
     if (!legend) return "bg-card border border-border/30"

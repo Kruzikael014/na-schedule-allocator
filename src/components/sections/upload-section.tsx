@@ -12,7 +12,9 @@ export function UploadSection(props: UploadSectionProps) {
     onAllocate,
     onTransactionFileUploaded,
     onScheduleFileUploaded,
-    scheduleFile
+    scheduleFile,
+    onRoomPicFileUploaded,
+    roomPicFile
   } = props
 
   return (
@@ -63,9 +65,30 @@ export function UploadSection(props: UploadSectionProps) {
                   Ready: {transactionFile.name}
                 </div>
               )}
+            </div>
+          </div>
+        </CardContent>
+
+        <CardContent className="space-y-6">
+          <p className="text-muted-foreground leading-relaxed text-center">
+            3. Upload Room-PIC data. Only support CSV format.
+          </p>
+
+          <div className="space-y-4">
+            <div className="flex justify-center">
+              <FileUpload onFileUpload={onRoomPicFileUploaded} />
+            </div>
+
+            <div className="flex flex-col items-center gap-4">
+              {roomPicFile && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 px-3 py-2 rounded-lg">
+                  <div className="w-2 h-2 bg-chart-2 rounded-full"></div>
+                  Ready: {roomPicFile.name}
+                </div>
+              )}
               <Button
                 onClick={onAllocate}
-                disabled={!transactionFile || !scheduleFile}
+                disabled={!transactionFile || !scheduleFile || !roomPicFile}
                 className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground px-8 py-2 rounded-lg font-medium transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {hasAllocated ? "Reallocate" : "Allocate"}

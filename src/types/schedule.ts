@@ -9,6 +9,8 @@ export interface UploadSectionProps {
   onScheduleFileUploaded: (file: File) => void
   transactionFile: File | null
   onTransactionFileUploaded: (file: File) => void
+  roomPicFile: File | null
+  onRoomPicFileUploaded: (file: File) => void
   hasAllocated: boolean
   onAllocate: () => void
 };
@@ -18,8 +20,6 @@ export interface FileUploadProps {
 };
 
 export interface ScheduleTableProps {
-  days: string[]
-  shifts: string[]
   pics: string[]
   timeCellData: TimeCellData[]
 }
@@ -38,6 +38,11 @@ export type ActivityLegend = {
   description: string
   color: string
   textColor: string
+}
+
+export type RoomPicData = {
+  pic: string
+  room: string[]
 }
 
 export type TransactionData = {

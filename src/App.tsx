@@ -2,9 +2,6 @@ import { useState, useCallback } from 'react'
 import './App.css'
 import { Header } from "./components/sections/header"
 import { UploadSection } from './components/sections/upload-section'
-import { CsvUtil } from './lib/csv-util'
-import type { ScheduleTableProps, TimeCellData } from './types/schedule'
-import { Allocate } from './lib/allocate-util'
 import { ScheduleTable } from './components/sections/schedule-table'
 
 
@@ -13,26 +10,17 @@ function App() {
   const [hasAllocated, setHasAllocated] = useState<boolean>(false)
   const [scheduleFile, setScheduleFile] = useState<File | null>(null)
   const [transactionFile, setTransactionFile] = useState<File | null>(null)
+  const [roomPicFile, setRoomPicFile] = useState<File | null>(null)
   const [allocatedSchedule, setAllocatedSchedule] = useState<ScheduleTableProps>()
 
   const handlePeriodChange = useCallback((period: string) => setSelectedPeriod(period), [])
-
   const handleScheduleFileUpload = useCallback((file: File) => setScheduleFile(file), [])
-
   const handleTransactionFileUpload = useCallback((file: File) => setTransactionFile(file), [])
+  const handleRoomPicFileUpload = useCallback((file: File) => setRoomPicFile(file), [])
 
   const handleAllocate = useCallback(async () => {
-    if (scheduleFile && transactionFile) {
-      setHasAllocated(true)
-      console.log('Processing file:', scheduleFile.name, 'and', transactionFile.name)
-      const [scheduleData, transactionData] = await Promise.all([
-        CsvUtil.parse<TimeCellData>(scheduleFile),
-        CsvUtil.parse<TimeCellData>(transactionFile)
-      ])
-      const allocatedSchedule = Allocate(scheduleData, transactionData)
-      setAllocatedSchedule(allocatedSchedule)
-    }
-  }, [scheduleFile, transactionFile])
+    
+  }, []);
 
   return <div className='min-h-screen bg-background'>
     <Header onPeriodChange={handlePeriodChange} selectedPeriod={selectedPeriod} />
@@ -42,10 +30,11 @@ function App() {
         onTransactionFileUploaded={handleTransactionFileUpload}
         scheduleFile={scheduleFile}
         transactionFile={transactionFile}
+        roomPicFile={roomPicFile}
+        onRoomPicFileUploaded={handleRoomPicFileUpload}
         hasAllocated={hasAllocated}
         onAllocate={handleAllocate}
       />
-
 
       {
         allocatedSchedule &&
