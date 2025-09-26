@@ -20,7 +20,7 @@ type WorkingShiftData = {
 }
 
 type RoomPicData = {
-  initial: string
+  pic: string
   room: string
 }
 
@@ -61,5 +61,6 @@ interface ScheduleTableProps {
   data: ActivityData[]
 }
 
-export type { UploadedFiles, Division, Team, ShiftCategory, ActivityData, ActivityLegend, WorkingShiftData }
+
+export type { UploadedFiles, Division, Team, ShiftCategory, ActivityData, ActivityLegend, WorkingShiftData, RoomPicData }
 export type { UploadSectionProps, ChecklistItemProps, ScheduleTableProps }

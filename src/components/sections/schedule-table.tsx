@@ -67,8 +67,8 @@ export function ScheduleTable({ data }: ScheduleTableProps) {
                   days.map((day, dayIdx) =>
                     shifts.map((shift, shiftIdx) => {
                       const key = `${day}-${shift}`
-                      const totalCode = data
-                        .filter(e => e.pic === pic && e.day === day && e.shift === shift)
+                      const activities = data.filter(e => e.pic === pic && e.day === day && e.shift === shift)
+                      const totalCode = activities
                         .reduce((sum, curr) => Number(sum) + Number(curr.code), 0);
                       const style = getCellStyle(totalCode)
 
@@ -87,6 +87,7 @@ export function ScheduleTable({ data }: ScheduleTableProps) {
                               : ""
                             }`}
                           style={typeof style === "object" ? style : undefined}
+                          title={activities.map(e => e.description).join(', ')}
                         >
                           {totalCode === 0 ? '' : totalCode}
                         </td>
