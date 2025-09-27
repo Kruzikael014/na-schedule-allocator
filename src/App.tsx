@@ -35,7 +35,6 @@ function App() {
     const calibration = await allocateCalibration(workTeachCollege, files.roomPicFile, files.transactionFile)
 
     setSchedule([...workTeachCollege, ...calibration])
-
   }, [files.shiftFile, files.roomPicFile, files.teachingCollegeFile, files.transactionFile]);
 
   return <div className='min-h-screen bg-background'>

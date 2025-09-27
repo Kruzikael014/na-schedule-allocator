@@ -39,40 +39,52 @@ export function useAllocate() {
 
   function isPicAvailable(pic: string, day: string, shift: string, schedule: ActivityData[]): boolean {
     const activities = schedule.filter(e => e.pic === pic && e.day === day && e.shift === shift)
-    if (activities.length === 0) return false // not in working shift, not even in college outside shift
-    const hasWorking = activities.some(e => e.code === 99)
-    const hasAnotherActivity = activities.some(e => {
-      const res = [21, 22, 23, 24].includes(e.code)
-      return res
-    })
-    return hasWorking && !hasAnotherActivity
+    if (activities.some(a => [21, 22, 23, 24].includes(a.code)) || activities.length === 0) return false
+    return true
   }
 
-  const isRoomFree = (room: string, day: string, shift: string, transaction: ActivityData[]): boolean => !transaction.some(e => e.room === room && e.day === day && e.shift === shift)
-
-  function hasEnoughStaff(pic: string, day: string, shift: string, schedule: ActivityData[]): boolean {
-    const entries = schedule.filter(e => e.day === day && e.shift === shift)
-
-    const byPic = entries.reduce<Record<string, ActivityData[]>>((acc, e) => {
-      (acc[e.pic] ??= []).push(e)
-      return acc
-    }, {})
-    // availablePics = pics yang *semua* activity-nya untuk slot ini adalah code 99
-    const availablePics = Object.entries(byPic)
-      .filter(([p, acts]) => {
-        // convert code to number defensively in case code is string like "99.9"
-        const codes = acts.map(a => Number(a.code));
-        // must have at least one 99 AND no non-99 "busy" codes
-        const hasWorking = codes.some(c => c === 99);
-        const hasBusy = codes.some(c => [21, 22, 23, 24].includes(c));
-        return hasWorking && !hasBusy;
-      })
-      .map(([p]) => p);
-
-    // target pic must be in availablePics, and count of availablePics >= 5
-    const enough = availablePics.length >= 5 && availablePics.includes(pic);
-    return enough;
+  function isStaffCountSufficient(day: string, shift: string, schedule: ActivityData[]): { isSufficient: boolean, freeStaff: string[] } {
+    const matchCondition = (e: ActivityData): boolean => e.day === day && e.shift === shift
+    const unavailableStaff = schedule.filter(e => matchCondition(e) && [21, 22, 23, 24].includes(e.code)).map(e => e.pic)
+    const freeStaff = schedule.filter(e => !unavailableStaff.includes(e.pic) && matchCondition(e)).map(e => e.pic)
+    return { isSufficient: freeStaff.length > 5, freeStaff }
   }
+
+  function isRoomFree(room: string, day: string, shift: string, transactions: ActivityData[]): boolean {
+    return !transactions.some(e => e.room === room && e.day === day && e.shift === shift)
+  }
+
+  function tryFindSlots({ pic, room }: RoomPicData, schedule: ActivityData[], transaction: ActivityData[]): { day: string, shift: string }[] | null {
+    const candidates: { day: string, shift: string }[] = []
+
+    // get all valid calib shedule
+    for (let d = 1; d <= 5; d++) {
+      for (const s of shiftPriority) {
+        const day = String(d)
+        const shift = String(s)
+
+        if (!isPicAvailable(pic, day, shift, schedule)) continue
+        const { isSufficient } = isStaffCountSufficient(day, shift, schedule)
+        if (!isSufficient) continue
+        if (!isRoomFree(room, day, shift, transaction)) continue
+
+        candidates.push({ day, shift })
+      }
+    }
+
+    // eliminate consecutive calib schedule to make sure gap > 2 days
+    for (let i = 0; i < candidates.length; i++) {
+      for (let j = i + 1; j < candidates.length; j++) {
+        if (Math.abs(Number(candidates[j].day) - Number(candidates[i].day)) > 2) {
+          return [candidates[i], candidates[j]]
+        }
+      }
+    }
+
+    return null
+  }
+
+  const shiftPriority = [3, 4, 2, 5, 1, 6]
 
   const allocateCalibration = useCallback(async (workTeachColl: ActivityData[], roomPicFile: File, transactionFile: File) => {
     const schedule = [...workTeachColl]
@@ -81,36 +93,32 @@ export function useAllocate() {
 
     const calibration: ActivityData[] = []
 
-    for (const { room, pic } of _roomPic) {
-      let allocated = 0
-      const usedDays = new Set<string>()
+    for (const { pic, room } of _roomPic) {
+      let slots = tryFindSlots({ pic, room }, schedule, _transaction)
 
-      for (let day = 1; day <= 6 && allocated < 2; day++) {
-        for (let shift = 1; shift <= 6 && allocated < 2; shift++) {
-          const d = String(day)
-          const s = String(shift)
+      if (!slots) {
+        console.warn(`⚠️ Try reallocate for ${room}`)
+        // TODO: Reallocate logic
+        // slots = reallocate({pic, room}, schedule, _transaction)
+      }
 
-          if (usedDays.has(d) || [...usedDays].some(e => Math.abs(day - Number(e)) <= 2)) break // has allocated on that day or previously has been allocated without 2 days gap
+      // still no slot even after reallocation
+      if (!slots) {
+        console.warn(`❌ Drop calibration for ${room}`)
+        continue
+      }
 
-          if (!isPicAvailable(pic, d, s, schedule)) continue
-          if (!isRoomFree(room, d, s, _transaction)) continue
-          if (!hasEnoughStaff(pic, d, s, schedule)) continue
-
-          const newCalib: ActivityData = {
-            code: 23,
-            description: `Calibration ${room}`,
-            room: room,
-            day: d,
-            shift: s,
-            pic: pic
-          }
-
-          calibration.push(newCalib)
-          schedule.push(newCalib) // because we use schedule to validate if we had enough staff on that shift
-
-          usedDays.add(d)
-          allocated++
+      for (const { day, shift } of slots) {
+        const calibData = {
+          code: 23,
+          description: `Calibration ${room}`,
+          room: room,
+          day: day,
+          shift: shift,
+          pic: pic
         }
+        calibration.push(calibData)
+        schedule.push(calibData)
       }
     }
 

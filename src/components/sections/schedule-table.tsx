@@ -75,7 +75,7 @@ export function ScheduleTable({ data }: ScheduleTableProps) {
                       return (
                         <td
                           key={key}
-                          className={`w-12 h-10 text-center text-xs font-medium schedule-cell ${shiftIdx === shifts.length - 1 && dayIdx < days.length - 1
+                          className={`cursor-pointer w-12 h-10 text-center text-xs font-medium schedule-cell ${shiftIdx === shifts.length - 1 && dayIdx < days.length - 1
                             ? "border-r-2 border-border"
                             : shiftIdx < shifts.length - 1
                               ? "border-r border-border/50"
