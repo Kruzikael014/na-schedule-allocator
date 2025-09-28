@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
-import type { ActivityData, RoomPicData, WorkingShiftData } from "../types";
+import type { ActivityData, CalibSlot, RoomPicData, WorkingShiftData } from "../types";
 import { usePapa } from "./use-papa";
+import { findCalibSlot, isStaffCountSufficient } from "../facades/calib-facade";
+import { randomNumber } from "../facades/util";
 
 export function useAllocate() {
   const { parse } = usePapa()
@@ -37,43 +39,8 @@ export function useAllocate() {
 
   const allocateTeachingCollege = useCallback(async (teachingCollegeData: File) => await parse<ActivityData>(teachingCollegeData, (row) => ({ ...row, code: Number(row.code) })), [])
 
-  function isPicAvailable(pic: string, day: string, shift: string, schedule: ActivityData[]): boolean {
-    const activities = schedule.filter(e => e.pic === pic && e.day === day && e.shift === shift)
-    if (activities.some(a => [21, 22, 23, 24].includes(a.code)) || activities.length === 0) return false
-    return true
-  }
-
-  function isStaffCountSufficient(day: string, shift: string, schedule: ActivityData[]): { isSufficient: boolean, freeStaff: string[] } {
-    const matchCondition = (e: ActivityData): boolean => e.day === day && e.shift === shift
-    const unavailableStaff = schedule.filter(e => matchCondition(e) && [21, 22, 23, 24].includes(e.code)).map(e => e.pic)
-    const freeStaff = schedule.filter(e => !unavailableStaff.includes(e.pic) && matchCondition(e)).map(e => e.pic)
-    return { isSufficient: freeStaff.length > 5, freeStaff }
-  }
-
-  function isRoomFree(room: string, day: string, shift: string, transactions: ActivityData[]): boolean {
-    return !transactions.some(e => e.room === room && e.day === day && e.shift === shift)
-  }
-
-  function findAllCandidates(pic: string, room: string, schedule: ActivityData[], transactions: ActivityData[], ignoreStaffCountAvailability: boolean = false): { day: string, shift: string }[] {
-    const candidates: { day: string, shift: string }[] = []
-    for (let d = 1; d <= 5; d++) {
-      for (const s of shiftPriority) {
-        const day = String(d)
-        const shift = String(s)
-
-        if (!isPicAvailable(pic, day, shift, schedule)) continue
-        const { isSufficient } = isStaffCountSufficient(day, shift, schedule)
-        if (!ignoreStaffCountAvailability && !isSufficient) continue
-        if (!isRoomFree(room, day, shift, transactions)) continue
-
-        candidates.push({ day, shift })
-      }
-    }
-    return candidates
-  }
-
-  function tryFindSlots({ pic, room }: RoomPicData, schedule: ActivityData[], transaction: ActivityData[], ignoreStaffCountAvailability: boolean = false): { day: string, shift: string }[] | null {
-    const candidates: { day: string, shift: string }[] = findAllCandidates(pic, room, schedule, transaction, ignoreStaffCountAvailability)
+  function tryFindSlots({ pic, room }: RoomPicData, schedule: ActivityData[], transaction: ActivityData[], ignoreStaffCountAvailability: boolean = false): CalibSlot[] | null {
+    const candidates: CalibSlot[] = findCalibSlot(pic, room, schedule, transaction, ignoreStaffCountAvailability)
 
     // eliminate consecutive calib schedule to make sure gap > 2 days
     for (let i = 0; i < candidates.length; i++) {
@@ -87,104 +54,64 @@ export function useAllocate() {
     return null
   }
 
-  function imGoingToPopThisShitOutOfTheScheduleAndInsertInIntoToAllocateArray({ room, pic }: RoomPicData, schedule: ActivityData[], toAllocate: RoomPicData[]) {
-    toAllocate.push({ pic: pic, room: room })
+  function pushifNotExists<T = any>(arr: T[], obj: T, conditionCallback: (e: T) => boolean) {
+    const found = arr.findIndex(conditionCallback)
+    if (found === -1) arr.push(obj)
+  }
+
+  function eliminateExistingCalibration({ room, pic }: RoomPicData, schedule: ActivityData[], unAllocated: RoomPicData[]) {
+    pushifNotExists(unAllocated, { pic: pic, room: room }, (e) => e.room === room)
     schedule.filter(e => e.code === 23 && e.room === room).forEach(cal => schedule.splice(schedule.indexOf(cal), 1))
   }
 
-  function tryReallocate(
-    toAllocate: RoomPicData[],
+  function reallocateCalibration(
+    unAllocated: RoomPicData[],
     schedule: ActivityData[],
     transaction: ActivityData[],
     untouchedSchedule: ActivityData[]
-  ): { day: string, shift: string, pic: string, room: string }[] | null {
-    console.log(`${JSON.stringify(toAllocate)}\n-------------------`)
-    const { pic, room } = toAllocate[0]
+  ): CalibSlot[] | null {
+
+    function delayReallocation() {
+      unAllocated.push({ pic, room })
+      unAllocated.shift()
+    }
+
+    const { pic, room } = unAllocated[0]
 
     let slots = tryFindSlots({ pic, room }, schedule, transaction)
-    let emergencySlots: {
-      day: string;
-      shift: string;
-    }[] | null
-
-    console.log('find replacement slots: ', slots, ' for ', { pic, room })
 
     if (!slots) {
-      emergencySlots = tryFindSlots({ pic, room }, untouchedSchedule, transaction, true)
-      if (!emergencySlots) {
-        const picRoom = toAllocate.shift()
-        toAllocate.push(picRoom!)
+      slots = tryFindSlots({ pic, room }, untouchedSchedule, transaction, true)
+      if (!slots) {
+        delayReallocation()
         return null
       }
-      console.log('find emergency replacement slots: ', emergencySlots, ' for ', { pic, room })
-      slots = emergencySlots
     }
 
-    const firstSub = schedule
-      .filter(e => e.code === 23 &&
-        (e.day === slots[0].day && e.shift === slots[0].shift)
-      ).map(e => {
-        return {
-          room: e.room!,
-          pic: e.pic,
-          dayshift: schedule.filter(s => e.room === s.room && s.code === 23).map(e => e.day + e.shift).join('-')
-        }
-      })
-
-    const secondSub = schedule
-      .filter(e => e.code === 23 &&
-        (e.day === slots[1].day && e.shift === slots[1].shift)
-      ).map(e => {
-        return {
-          room: e.room!,
-          pic: e.pic,
-          dayshift: schedule.filter(s => e.room === s.room && s.code === 23).map(e => e.day + e.shift).join('-')
-        }
-      })
-
-    console.log('first', firstSub, 'second', secondSub)
-
-    // kalau ada diri dia di substitutor?
-    if (firstSub.some(e => e.pic === pic)) {
-      // remove from schedule, add to toALlocate
-      const _r = firstSub.filter(e => e.pic === pic)
-      for (const r of _r)
-        imGoingToPopThisShitOutOfTheScheduleAndInsertInIntoToAllocateArray({ room: r.room, pic: r.pic }, schedule, toAllocate)
-    }
-    else if (secondSub.some(e => e.pic === pic)) {
-      // remove from schedule, add to toALlocate
-      const _r = secondSub.filter(e => e.pic === pic)
-      for (const r of _r)
-        imGoingToPopThisShitOutOfTheScheduleAndInsertInIntoToAllocateArray({ room: r.room, pic: r.pic }, schedule, toAllocate)
-    }
-    // kalau ada exact match
-    const exactMatchIdx = firstSub.findIndex(e => e.dayshift === `${slots[0].day + slots[0].shift + '-' + slots[1].day + slots[1].shift}`)
-    if (exactMatchIdx !== -1) {
-      imGoingToPopThisShitOutOfTheScheduleAndInsertInIntoToAllocateArray({ pic: firstSub[exactMatchIdx].pic, room: firstSub[exactMatchIdx].room }, schedule, toAllocate)
-    }
-    // kalau tidak ada yang exactly match dia 
-    else {
-      const substitutorsMap = new Map(
-        schedule.filter(
-          e =>
-            e.code === 23 &&
-            (
-              (e.day === slots[0].day && e.shift === slots[0].shift) ||
-              (e.day === slots[1].day && e.shift === slots[1].shift)
-            )
-        ).map(e => [`${e.room}-${e.pic}`, { room: e.room!, pic: e.pic }])
-      )
-      const substitutors = [...substitutorsMap.values()]
-
-      for (const { room } of substitutors) {
-        schedule.filter(e => e.code === 23 && e.room === room).forEach(a => schedule.splice(schedule.indexOf(a), 1))
+    for (const { day, shift } of slots) {
+      // apakah di shift tsb ada calib dia, kalau ada maka harus di remove dan masukkan ke unAllocated array
+      const samePicCalibConflict = schedule.find(e => e.code === 23 && e.day === day && e.shift === shift && e.pic === pic)
+      if (samePicCalibConflict) {
+        eliminateExistingCalibration({ pic: samePicCalibConflict.pic, room: samePicCalibConflict.room! }, schedule, unAllocated)
       }
-
+      // apakah shift tsb availability aman? kalau aman langsung insert aja
+      const { isSufficient } = isStaffCountSufficient(day, shift, schedule)
+      if (!isSufficient) {
+        // kalau gak aman, berarti harus eliminate existing calib
+        const _substitutor = schedule.filter(e => e.code === 23 && e.day === day && e.shift === shift)
+        if (_substitutor.length === 0) {
+          delayReallocation()
+          return null
+        }
+        const { pic, room } = _substitutor[randomNumber(0, _substitutor.length - 1)]
+        eliminateExistingCalibration({ pic: pic, room: room! }, schedule, unAllocated)
+      }
+      // kalau aman berarti langsung return slot ({day, shift}) aja
     }
-    return slots.map(e => ({ ...e, pic: pic, room: room }))
+
+    return slots
   }
 
-  const shiftPriority = [3, 4, 2, 5, 1, 6]
 
   const allocateCalibration = useCallback(async (workTeachColl: ActivityData[], roomPicFile: File, transactionFile: File) => {
     const untouchedSchedule = [...workTeachColl]
@@ -192,14 +119,15 @@ export function useAllocate() {
     const _roomPic = await parse<RoomPicData>(roomPicFile)
     const _transaction = await parse<ActivityData>(transactionFile)
 
-    const failedToAllocate: RoomPicData[] = []
+    const unAllocated: RoomPicData[] = []
 
     for (const { pic, room } of _roomPic) {
       let slots = tryFindSlots({ pic, room }, schedule, _transaction)
 
       if (!slots) {
         console.warn(`⚠️ Try reallocate for ${room}`)
-        failedToAllocate.push({ pic, room })
+        pushifNotExists<RoomPicData>(unAllocated, { pic: pic, room: room }, (e) => e.room === room)
+        unAllocated.push({ pic, room })
         continue
       }
 
@@ -216,34 +144,29 @@ export function useAllocate() {
       }
     }
 
-    console.log('failed', failedToAllocate)
+    let attempt = 0
+    let maxAttempt = unAllocated.length * 150
 
-    let attempts = 0
-    const maxAttempts = failedToAllocate.length * 5 // fleksibel, 3x percobaan per item
-
-    for (let i = 0; i < 3; i++)
-    // while (failedToAllocate.length > 0 && attempts < maxAttempts) 
-    {
-      attempts++
-      const slots = tryReallocate(failedToAllocate, schedule, _transaction, untouchedSchedule)
+    while (unAllocated.length > 0 && attempt < maxAttempt) {
+      const slots = reallocateCalibration(unAllocated, schedule, _transaction, untouchedSchedule)
       if (slots) {
-        for (const { day, shift, pic, room } of slots) {
+        for (const { day, shift } of slots) {
+          const room = unAllocated[0].room
+          const pic = unAllocated[0].pic
           schedule.push({
             code: 23,
             day: day,
             shift: shift,
-            description: `Calibration ${room}`,
+            description: `Calibration ${unAllocated[0].room}`,
             pic: pic,
             room: room
           })
         }
-        failedToAllocate.shift()
+        unAllocated.shift()
       }
+      attempt++
     }
 
-    if (failedToAllocate.length > 0) {
-      console.warn("⚠️ Masih ada yang gagal dialokasikan setelah reallocation attempts:", failedToAllocate)
-    }
 
     return schedule.filter(e => e.code === 23)
   }, [])

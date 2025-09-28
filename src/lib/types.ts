@@ -40,6 +40,8 @@ type ActivityData = {
   code: number
 }
 
+type CalibSlot = { day: string, shift: string }
+
 interface UploadSectionProps {
   files: UploadedFiles
   setFiles: ((file: File) => void)[]
@@ -62,5 +64,5 @@ interface ScheduleTableProps {
 }
 
 
-export type { UploadedFiles, Division, Team, ShiftCategory, ActivityData, ActivityLegend, WorkingShiftData, RoomPicData }
+export type { UploadedFiles, Division, Team, ShiftCategory, ActivityData, ActivityLegend, WorkingShiftData, RoomPicData, CalibSlot }
 export type { UploadSectionProps, ChecklistItemProps, ScheduleTableProps }
