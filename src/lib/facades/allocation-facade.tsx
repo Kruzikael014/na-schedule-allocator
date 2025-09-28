@@ -40,4 +40,17 @@ function findCalibSlot(pic: string, room: string, schedule: ActivityData[], tran
   return candidates
 }
 
-export { isPicAvailable, isStaffCountSufficient, isRoomFree, findCalibSlot }
+function tryFindSlots({ pic, room }: RoomPicData, schedule: ActivityData[], transaction: ActivityData[], ignoreStaffCountAvailability: boolean = false): CalibSlot[] | null {
+  const candidates: CalibSlot[] = findCalibSlot(pic, room, schedule, transaction, ignoreStaffCountAvailability)
+  // eliminate consecutive calib schedule to make sure gap > 2 days
+  for (let i = 0; i < candidates.length; i++) {
+    for (let j = i + 1; j < candidates.length; j++) {
+      if (Math.abs(Number(candidates[j].day) - Number(candidates[i].day)) > 2) {
+        return [candidates[i], candidates[j]]
+      }
+    }
+  }
+  return null
+}
+
+export { isPicAvailable, isStaffCountSufficient, isRoomFree, tryFindSlots }
