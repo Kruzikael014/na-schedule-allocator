@@ -16,7 +16,7 @@ function App() {
   const setRoomPicFile = useCallback((file: File) => setFiles(prev => ({ ...prev, roomPicFile: file })), [])
   const setTeachingCollegeFile = useCallback((file: File) => setFiles(prev => ({ ...prev, teachingCollegeFile: file })), [])
   const setTransactionFile = useCallback((file: File) => setFiles(prev => ({ ...prev, transactionFile: file })), [])
-  const { allocateWorking, allocateTeachingCollege, allocateCalibration } = useAllocate()
+  const { allocateWorking, allocateTeachingCollege, allocateCalibration, allocateStandby } = useAllocate()
 
   const handleAllocate = useCallback(async () => {
     if (!files.shiftFile || !files.roomPicFile || !files.teachingCollegeFile || !files.transactionFile)
@@ -34,7 +34,12 @@ function App() {
     // Calibration
     const calibration = await allocateCalibration(workTeachCollege, files.roomPicFile, files.transactionFile)
 
-    setSchedule([...workTeachCollege, ...calibration])
+    const workTeachCollCal = [...workTeachCollege, ...calibration]
+
+    // Standby 
+    const standby = await allocateStandby(workTeachCollege, files.shiftFile)
+
+    setSchedule([...workTeachCollCal, ...standby])
   }, [files.shiftFile, files.roomPicFile, files.teachingCollegeFile, files.transactionFile]);
 
   return <div className='min-h-screen bg-background'>

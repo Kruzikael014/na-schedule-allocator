@@ -1,12 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import type { ActivityData, CalibSlot, RoomPicData, WorkingShiftData } from "../types";
 import { usePapa } from "./use-papa";
-import { findCalibSlot, isStaffCountSufficient } from "../facades/calib-facade";
+import { isStaffCountSufficient, tryFindSlots } from "../facades/allocation-facade";
 import { randomNumber } from "../facades/util";
 
 export function useAllocate() {
   const { parse } = usePapa()
-  const [workingShift, setWorkingShift] = useState<WorkingShiftData[]>()
 
   const getShiftNum = useCallback((shiftCategory: string, day: number) => {
     return shiftCategory === 'P' ? (day != 6 ? [1, 2, 3, 4] : [1, 2, 3]) : (day != 6 ? [3, 4, 5, 6] : [3, 4, 5])
@@ -19,7 +18,6 @@ export function useAllocate() {
       shifts: [row.monday, row.tuesday, row.wednesday, row.thursday, row.friday, row.saturday],
       team: row.team
     }))
-    setWorkingShift(shiftData)
     return shiftData.flatMap(data => {
       return data.shifts.flatMap((shiftCategory, d) => {
         const day = d + 1
@@ -39,20 +37,6 @@ export function useAllocate() {
 
   const allocateTeachingCollege = useCallback(async (teachingCollegeData: File) => await parse<ActivityData>(teachingCollegeData, (row) => ({ ...row, code: Number(row.code) })), [])
 
-  function tryFindSlots({ pic, room }: RoomPicData, schedule: ActivityData[], transaction: ActivityData[], ignoreStaffCountAvailability: boolean = false): CalibSlot[] | null {
-    const candidates: CalibSlot[] = findCalibSlot(pic, room, schedule, transaction, ignoreStaffCountAvailability)
-
-    // eliminate consecutive calib schedule to make sure gap > 2 days
-    for (let i = 0; i < candidates.length; i++) {
-      for (let j = i + 1; j < candidates.length; j++) {
-        if (Math.abs(Number(candidates[j].day) - Number(candidates[i].day)) > 2) {
-          return [candidates[i], candidates[j]]
-        }
-      }
-    }
-
-    return null
-  }
 
   function pushifNotExists<T = any>(arr: T[], obj: T, conditionCallback: (e: T) => boolean) {
     const found = arr.findIndex(conditionCallback)
@@ -77,7 +61,6 @@ export function useAllocate() {
     }
 
     const { pic, room } = unAllocated[0]
-
     let slots = tryFindSlots({ pic, room }, schedule, transaction)
 
     if (!slots) {
@@ -108,10 +91,8 @@ export function useAllocate() {
       }
       // kalau aman berarti langsung return slot ({day, shift}) aja
     }
-
     return slots
   }
-
 
   const allocateCalibration = useCallback(async (workTeachColl: ActivityData[], roomPicFile: File, transactionFile: File) => {
     const untouchedSchedule = [...workTeachColl]
@@ -167,13 +148,55 @@ export function useAllocate() {
       attempt++
     }
 
-
     return schedule.filter(e => e.code === 23)
   }, [])
 
-  const allocateStandby = useCallback(async (workTeachCollCal: ActivityData[]) => {
+  const allocateStandby = useCallback(async (workTeachCollCal: ActivityData[], workingShiftFile: File) => {
+    const schedule = [...workTeachCollCal]
+    const shiftData = await parse<WorkingShiftData>(workingShiftFile, row => ({
+      division: row.division,
+      initial: row.initial,
+      shifts: [row.monday, row.tuesday, row.wednesday, row.thursday, row.friday, row.saturday],
+      team: row.team
+    }))
 
-  }, [workingShift])
+    const countMap = new Map<string, number>()
 
-  return { allocateWorking, allocateTeachingCollege, allocateCalibration }
+    // initialize countMap
+    for (const { initial } of shiftData)
+      countMap.set(initial, 0)
+
+    // start allocating from monday - friday
+    for (let d = 1; d <= 5; d++) {
+      for (let s = 1; s <= 6; s++) {
+        const day = String(d)
+        const shift = String(s)
+        // search who is available at that shift
+        const { freeStaff } = isStaffCountSufficient(day, shift, workTeachCollCal)
+        // get 2 random staff of freeStaff array
+        const candidates = freeStaff.splice(randomNumber(0, freeStaff.length - 2), 2)
+        // update the countMap
+        for (const initial of candidates) {
+          // insert 
+          schedule.push({
+            code: 24,
+            day: day,
+            shift: shift,
+            description: `Standby day ${day} shift ${shift}`,
+            pic: initial,
+            room: null
+          })
+          // update countMap
+
+        }
+      }
+    }
+
+    // allocating for saturday with additional team condition
+
+
+    return schedule.filter(e => e.code === 24)
+  }, [])
+
+  return { allocateWorking, allocateTeachingCollege, allocateCalibration, allocateStandby }
 }
