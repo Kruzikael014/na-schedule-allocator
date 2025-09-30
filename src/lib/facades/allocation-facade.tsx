@@ -9,15 +9,22 @@ function isPicAvailable(pic: string, day: string, shift: string, schedule: Activ
 
 const minAmountOfAvailableStaff = 5
 
+const sameDaySameShift = (e: ActivityData, day: string, shift: string): boolean => e.day === day && e.shift === shift
+
 function isStaffCountSufficient(day: string, shift: string, schedule: ActivityData[]): { isSufficient: boolean, freeStaff: string[] } {
-  const matchCondition = (e: ActivityData): boolean => e.day === day && e.shift === shift
-  const unavailableStaff = schedule.filter(e => matchCondition(e) && [21, 22, 23, 24].includes(e.code)).map(e => e.pic)
-  const freeStaff = schedule.filter(e => !unavailableStaff.includes(e.pic) && matchCondition(e)).map(e => e.pic)
+  const unavailableStaff = schedule.filter(e => sameDaySameShift(e, day, shift) && [21, 22, 23, 24].includes(e.code)).map(e => e.pic)
+  console.log(`h${day}s${shift} unavailable: `, unavailableStaff)
+  const freeStaff = schedule.filter(e => !unavailableStaff.includes(e.pic) && sameDaySameShift(e, day, shift)).map(e => e.pic)
+  console.log(`h${day}s${shift} free : `, freeStaff)
   return { isSufficient: freeStaff.length >= minAmountOfAvailableStaff, freeStaff }
 }
 
 function isRoomFree(room: string, day: string, shift: string, transactions: ActivityData[]): boolean {
   return !transactions.some(e => e.room === room && e.day === day && e.shift === shift)
+}
+
+function dailyStandbyCount(initial: string, day: string, schedule: ActivityData[]): number {
+  return schedule.filter(e => e.code === 24 && e.pic === initial && e.day === day).length
 }
 
 const shiftPriority = [3, 4, 2, 5, 1, 6]
@@ -53,4 +60,4 @@ function tryFindSlots({ pic, room }: RoomPicData, schedule: ActivityData[], tran
   return null
 }
 
-export { isPicAvailable, isStaffCountSufficient, isRoomFree, tryFindSlots }
+export { isPicAvailable, isStaffCountSufficient, isRoomFree, tryFindSlots, dailyStandbyCount }

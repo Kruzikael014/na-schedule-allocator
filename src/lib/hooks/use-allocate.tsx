@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { ActivityData, CalibSlot, RoomPicData, WorkingShiftData } from "../types";
 import { usePapa } from "./use-papa";
-import { isStaffCountSufficient, tryFindSlots } from "../facades/allocation-facade";
+import { isStaffCountSufficient, dailyStandbyCount, tryFindSlots } from "../facades/allocation-facade";
 import { randomNumber } from "../facades/util";
 
 export function useAllocate() {
@@ -157,46 +157,101 @@ export function useAllocate() {
       division: row.division,
       initial: row.initial,
       shifts: [row.monday, row.tuesday, row.wednesday, row.thursday, row.friday, row.saturday],
-      team: row.team
+      team: row.team,
     }))
-
     const countMap = new Map<string, number>()
 
-    // initialize countMap
-    for (const { initial } of shiftData)
-      countMap.set(initial, 0)
+    const getTeam = (initial: string): string => shiftData.find(e => e.initial === initial)!.team
 
-    // start allocating from monday - friday
+    // initialize countMap
+    for (const { initial } of shiftData) countMap.set(initial, 0)
+
+    // saturday standby
+    for (let s = 1; s <= 5; s++) {
+      const shift = String(s)
+
+      // sort countMap by count (lowest first), so we process staff with the least standby count
+      const sortedMap = [...countMap].sort((a, b) => a[1] - b[1])
+
+      const candidates: string[] = []
+      const { freeStaff } = isStaffCountSufficient('6', shift, schedule)
+
+      // fill the 1st and 2nd slot with team A staff
+      for (const [key, val] of sortedMap) {
+        if (candidates.length === 2) break
+        if (dailyStandbyCount(key, '6', schedule) === 2) continue
+        if (val >= 5) continue
+        if (getTeam(key) !== 'A') continue
+        if (freeStaff.includes(key)) {
+          candidates.push(key)
+        }
+      }
+
+      // fill the 3rd and 4th slot with team B staff
+      for (const [key, val] of sortedMap) {
+        if (candidates.length === 4) break
+        if (dailyStandbyCount(key, '6', schedule) === 2) continue
+        if (val >= 5) continue
+        if (getTeam(key) !== 'B') continue
+        if (freeStaff.includes(key)) {
+          candidates.push(key)
+        }
+      }
+
+      // update countMap and insert chosen staff to schedule
+      for (const initial of candidates) {
+        countMap.set(initial, countMap.get(initial)! + 1)
+        schedule.push({
+          code: 24,
+          day: '6',
+          shift,
+          description: `Standby day 6 shift ${shift} (${getTeam(initial) === "A" ? "Red" : "Blue"})`,
+          pic: initial,
+          room: null,
+        })
+      }
+    }
+
+    // monday - friday standby
     for (let d = 1; d <= 5; d++) {
       for (let s = 1; s <= 6; s++) {
         const day = String(d)
         const shift = String(s)
-        // search who is available at that shift
-        const { freeStaff } = isStaffCountSufficient(day, shift, workTeachCollCal)
-        // get 2 random staff of freeStaff array
-        const candidates = freeStaff.splice(randomNumber(0, freeStaff.length - 2), 2)
-        // update the countMap
+
+        const { freeStaff } = isStaffCountSufficient(day, shift, schedule)
+
+        // sort by least standby count
+        const sortedMap = [...countMap].sort((a, b) => a[1] - b[1])
+
+        const candidates: string[] = []
+
+        // pick 2 candidates
+        for (const [key, val] of sortedMap) {
+          if (candidates.length === 2) break
+          if (dailyStandbyCount(key, day, schedule) === 2) continue
+          if (val >= 5) continue
+          if (freeStaff.includes(key)) {
+            candidates.push(key)
+          }
+        }
+
         for (const initial of candidates) {
-          // insert 
+          countMap.set(initial, countMap.get(initial)! + 1)
           schedule.push({
             code: 24,
-            day: day,
-            shift: shift,
+            day,
+            shift,
             description: `Standby day ${day} shift ${shift}`,
             pic: initial,
-            room: null
+            room: null,
           })
-          // update countMap
-
         }
       }
     }
 
-    // allocating for saturday with additional team condition
-
-
     return schedule.filter(e => e.code === 24)
   }, [])
+
 
   return { allocateWorking, allocateTeachingCollege, allocateCalibration, allocateStandby }
 }

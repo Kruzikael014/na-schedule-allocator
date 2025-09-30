@@ -37,7 +37,7 @@ function App() {
     const workTeachCollCal = [...workTeachCollege, ...calibration]
 
     // Standby 
-    const standby = await allocateStandby(workTeachCollege, files.shiftFile)
+    const standby = await allocateStandby(workTeachCollCal, files.shiftFile)
 
     setSchedule([...workTeachCollCal, ...standby])
   }, [files.shiftFile, files.roomPicFile, files.teachingCollegeFile, files.transactionFile]);
