@@ -192,7 +192,6 @@ export function useAllocate() {
       }
       toAllocate = [...countMap].filter(e => e[1] < 5)
     }
-    console.log('countMap : ', countMap)
   }
 
   const allocateStandby = useCallback(async (workTeachCollCal: ActivityData[], workingShiftFile: File) => {
