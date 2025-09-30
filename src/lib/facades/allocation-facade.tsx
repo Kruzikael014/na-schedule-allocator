@@ -28,6 +28,7 @@ function dailyStandbyCount(initial: string, day: string, schedule: ActivityData[
 function findIncompleteStandbyDay(schedule: ActivityData[]): { day: string, shift: string } | null {
   for (let d = 1; d <= 6; d++)
     for (let s = 1; s <= 6; s++) {
+      if (d === 6 && s === 6) break
       const day = String(d)
       const shift = String(s)
 

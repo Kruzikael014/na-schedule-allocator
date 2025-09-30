@@ -3,10 +3,11 @@ import { FileUpload } from "./file-upload";
 import { CheckCircle2 } from "lucide-react";
 
 export function ChecklistItem(props: ChecklistItemProps) {
-  const { completed, label, stepNumber, disabled, fileName, onFileUpload, showUpload } = props
+  const { completed, label, stepNumber, disabled, fileName, onFileUpload, showUpload, onClick } = props
   return (
     <div
-      className={`relative transition-all duration-700 ease-out ${disabled ? "opacity-50 pointer-events-none" : "opacity-100"
+      onClick={onClick}
+      className={`select-none cursor-pointer relative transition-all duration-700 ease-out ${disabled ? "opacity-50 pointer-events-none" : "opacity-100"
         }`}
     >
       <div

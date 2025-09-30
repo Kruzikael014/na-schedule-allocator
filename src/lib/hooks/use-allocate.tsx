@@ -247,7 +247,7 @@ export function useAllocate() {
         schedule.push({
           code: 24,
           day: '6',
-          shift,
+          shift: shift,
           description: `Standby day 6 shift ${shift} (${getTeam(initial) === "A" ? "Red" : "Blue"})`,
           pic: initial,
           room: null,

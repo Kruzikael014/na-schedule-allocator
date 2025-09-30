@@ -95,7 +95,7 @@ export function FileUpload({ onFileUpload }: FileUploadProps) {
 
         <div className="text-center space-y-2">
           <p className="font-medium text-foreground">Click to upload or drag and drop</p>
-          <p className="text-sm text-muted-foreground">CSV, Excel, or JSON files</p>
+          <p className="text-sm text-muted-foreground">Only accept CSV!</p>
         </div>
 
         <input

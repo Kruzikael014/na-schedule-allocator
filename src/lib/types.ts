@@ -57,6 +57,7 @@ interface ChecklistItemProps {
   showUpload?: boolean
   onFileUpload?: (file: File) => void
   disabled?: boolean
+  onClick?: () => void
 }
 
 interface ScheduleTableProps {

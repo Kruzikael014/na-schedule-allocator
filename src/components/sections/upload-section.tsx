@@ -3,12 +3,36 @@ import { Upload } from "lucide-react"
 import { CardContent, Card, CardHeader, CardTitle } from "../ui/card"
 import { Button } from "../ui/button"
 import type { ChecklistItemProps, UploadSectionProps } from "@/lib/types"
-import { memo } from "react"
+import { memo, useEffect, useState } from "react"
 import { ChecklistItem } from "../ui/checklist-item"
 
 export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: UploadSectionProps) {
   const { shiftFile, roomPicFile, teachingCollegeFile, transactionFile } = files
   const [setShiftFile, setRoomPicFile, setTeachingCollegeFile, setTransactionFile] = setFiles
+  const [forceSequential, setForceSequential] = useState(true)
+  const [checklistState, setChecklistState] = useState<{
+    _1: boolean,
+    _2: boolean,
+    _3: boolean,
+    _4: boolean
+  }>({
+    _1: false,
+    _2: false,
+    _3: false,
+    _4: false
+  })
+
+  useEffect(() => {
+    if (shiftFile && roomPicFile && teachingCollegeFile && transactionFile) {
+      setForceSequential(false);
+    }
+  }, [shiftFile, roomPicFile, teachingCollegeFile, transactionFile]);
+
+  function toggleChecklist(step: keyof typeof checklistState) {
+    if (!forceSequential) {
+      setChecklistState(prev => ({ ...prev, [step]: !prev[step] }))
+    }
+  }
 
   const MemoizedChecklistItem = memo((props: ChecklistItemProps) => (<ChecklistItem {...props} />))
 
@@ -30,16 +54,18 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: Upl
               label="Upload Working Shift data. Only support csv."
               completed={!!shiftFile}
               fileName={shiftFile?.name}
-              showUpload={!!shiftFile === true ? false : true}
+              showUpload={forceSequential ? !shiftFile : checklistState._1}
               onFileUpload={setShiftFile}
+              onClick={() => toggleChecklist("_1")}
             />
             <MemoizedChecklistItem
               stepNumber={2}
               label="Upload Room-PIC data. Only support csv."
               completed={!!roomPicFile}
               fileName={roomPicFile?.name}
-              showUpload={!!shiftFile && !!roomPicFile === false}
+              showUpload={forceSequential ? !!shiftFile && !roomPicFile : checklistState._2}
               onFileUpload={setRoomPicFile}
+              onClick={() => toggleChecklist("_2")}
             />
             <MemoizedChecklistItem
               stepNumber={3}
@@ -47,7 +73,8 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: Upl
               completed={!!teachingCollegeFile}
               fileName={teachingCollegeFile?.name}
               onFileUpload={setTeachingCollegeFile}
-              showUpload={!!roomPicFile && !!teachingCollegeFile === false}
+              showUpload={forceSequential ? !!shiftFile && !!roomPicFile && !teachingCollegeFile : checklistState._3}
+              onClick={() => toggleChecklist("_3")}
             />
             <MemoizedChecklistItem
               stepNumber={4}
@@ -55,7 +82,8 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: Upl
               completed={!!transactionFile}
               fileName={transactionFile?.name}
               onFileUpload={setTransactionFile}
-              showUpload={!!teachingCollegeFile && !!transactionFile === false}
+              showUpload={forceSequential ? !!shiftFile && !!roomPicFile && !!teachingCollegeFile && !transactionFile : checklistState._4}
+              onClick={() => toggleChecklist("_4")}
             />
             <ChecklistItem
               stepNumber={5}
