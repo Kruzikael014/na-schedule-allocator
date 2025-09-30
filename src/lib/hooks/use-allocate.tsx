@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import type { ActivityData, CalibSlot, RoomPicData, WorkingShiftData } from "../types";
 import { usePapa } from "./use-papa";
-import { isStaffCountSufficient, dailyStandbyCount, tryFindSlots } from "../facades/allocation-facade";
+import { isStaffCountSufficient, dailyStandbyCount, tryFindSlots, findIncompleteStandbyDay, isPicAvailable } from "../facades/allocation-facade";
 import { randomNumber } from "../facades/util";
 
 export function useAllocate() {
@@ -151,6 +151,50 @@ export function useAllocate() {
     return schedule.filter(e => e.code === 23)
   }, [])
 
+  function reallocateStandby(countMap: Map<string, number>, schedule: ActivityData[]) {
+    let toAllocate = [...countMap].filter(e => e[1] < 5)
+
+    while (toAllocate.length > 0) {
+      const incompleteStandby = findIncompleteStandbyDay(schedule)
+      console.log('incompleteStandby :', incompleteStandby)
+
+      if (!incompleteStandby) break // artinya semuanya lengkap
+
+      const { day, shift } = incompleteStandby
+      const { freeStaff } = isStaffCountSufficient(day, shift, schedule)
+
+      const candidate = freeStaff[randomNumber(0, freeStaff.length - 1)]
+
+      schedule.push({
+        code: 24,
+        day: day,
+        shift: shift,
+        description: `Standby day ${day} shift ${shift}`,
+        pic: candidate,
+        room: null,
+      })
+      countMap.set(candidate, countMap.get(candidate)! + 1)
+
+      // candidate might be over standby -> search substitutor
+      for (const [substitutor, _] of toAllocate) {
+        // find candidate std by schedule
+        const candidateStdBySchedule = schedule.filter(e => e.code === 24 && e.pic === candidate && e.day !== '6')
+        // find the std by schedule where substitutor is free
+        const act = candidateStdBySchedule.find(e => isPicAvailable(substitutor, e.day, e.shift, schedule))
+        if (act) {
+          // update data
+          const idx = schedule.indexOf(act)
+          schedule[idx].pic = substitutor
+          // update countMap (sub+1 | candidate -1)
+          countMap.set(substitutor, countMap.get(substitutor)! + 1)
+          countMap.set(candidate, countMap.get(candidate)! - 1)
+        }
+      }
+      toAllocate = [...countMap].filter(e => e[1] < 5)
+    }
+    console.log('countMap : ', countMap)
+  }
+
   const allocateStandby = useCallback(async (workTeachCollCal: ActivityData[], workingShiftFile: File) => {
     const schedule = [...workTeachCollCal]
     const shiftData = await parse<WorkingShiftData>(workingShiftFile, row => ({
@@ -248,6 +292,8 @@ export function useAllocate() {
         }
       }
     }
+
+    reallocateStandby(countMap, schedule)
 
     return schedule.filter(e => e.code === 24)
   }, [])
