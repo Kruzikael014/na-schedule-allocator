@@ -31,7 +31,7 @@ export default function useActivity({ periodId }: { periodId: string | null }) {
 
   const saveActivity = async (schedule: ActivityData[]) => {
     try {
-      const result = await API.post('/activity', {
+      await API.post('/activity', {
         periodId: periodId,
         activities: schedule.map(e => ({
           description: e.description,
