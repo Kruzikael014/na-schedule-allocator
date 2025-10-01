@@ -13,3 +13,24 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+model Period {
+  periodId   String  @id @default(uuid())
+  periodName String
+  isPresent  Boolean
+
+  Activity Activity[]
+}
+
+model Activity {
+  activityId  BigInt  @id @default(autoincrement())
+  periodId    String
+  description String
+  room        String?
+  day         String
+  shift       String
+  pic         String
+  code        Int
+
+  period Period @relation(fields: [periodId], references: [periodId])
+}
