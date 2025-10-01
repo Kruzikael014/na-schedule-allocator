@@ -156,7 +156,6 @@ export function useAllocate() {
 
     while (toAllocate.length > 0) {
       const incompleteStandby = findIncompleteStandbyDay(schedule)
-      console.log('incompleteStandby :', incompleteStandby)
 
       if (!incompleteStandby) break // artinya semuanya lengkap
 

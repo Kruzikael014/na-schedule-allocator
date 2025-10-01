@@ -1,10 +1,5 @@
 import type { ActivityLegend } from "@/lib/types";
-
-export const PERIODS: string[] = [
-  'ODD 2024/2025',
-  'EVEN 2024/2025',
-  'SHORT 2025',
-];
+import axios from "axios";
 
 export const ACTIVITY_LEGENDS: ActivityLegend[] = [
   { code: 21, description: "Class", color: "#fef9e7", textColor: "#a16207" },
@@ -15,3 +10,14 @@ export const ACTIVITY_LEGENDS: ActivityLegend[] = [
   { code: 122, description: "Calibration", color: "#f0fdf4", textColor: "#16a34a" },
   { code: 123, description: "Standby", color: "#fef2f2", textColor: "#dc2626" },
 ]
+
+const API = axios.create({
+  baseURL: import.meta.env.VITE_BACKEND_URL,
+
+  headers: {
+    Accept: "application/json",
+    "Content-Type": "application/json",
+  }
+});
+
+export { API }
