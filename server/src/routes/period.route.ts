@@ -1,13 +1,13 @@
 import { Router } from "express";
 import * as controller from "../controllers/period.controller"
 
-const periodRouter = Router({
+const router = Router({
     caseSensitive: false,
 })
 
-periodRouter.get('/', controller.getPeriods)
-periodRouter.post('/', controller.createPeriod)
-periodRouter.patch('/', controller.updatePeriod)
-periodRouter.patch('/set-present', controller.updatePresentPeriod)
+router.get('/', controller.getPeriods)
+router.post('/', controller.createPeriod)
+router.patch('/', controller.updatePeriod)
+router.patch('/set-present', controller.updatePresentPeriod)
 
-export default periodRouter
+export { router as PeriodRouter }

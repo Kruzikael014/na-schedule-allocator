@@ -14,4 +14,9 @@ interface GetActivitiesResponseDto {
     activities: ActivityResponseDto[]
 }
 
-export { ActivityResponseDto, GetActivitiesResponseDto }
+interface CreateActivitiesRequestDto {
+    periodId: string
+    activities: ActivityResponseDto[]
+}
+
+export { ActivityResponseDto, GetActivitiesResponseDto, CreateActivitiesRequestDto }

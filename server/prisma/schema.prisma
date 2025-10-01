@@ -18,7 +18,7 @@ model Period {
   periodName String
   isPresent  Boolean
 
-  Activity Activity[]
+  activities Activity[]
 }
 
 model Activity {
