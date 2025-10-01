@@ -17,7 +17,9 @@ export const getActivities = async (periodId: string): Promise<GetActivitiesResp
   if (!result) throw new NotFoundError()
   return {
     period: {
-      ...result
+      periodId: result.periodId,
+      periodName: result.periodName,
+      isPresent: result.isPresent
     },
     activities: result.activities.map(e => ({
       code: e.code,

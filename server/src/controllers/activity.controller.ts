@@ -7,7 +7,7 @@ import * as util from "../lib/util"
 export const createActivities = async (req: Request, res: Response) => {
   try {
     const { activities, periodId }: CreateActivitiesRequestDto = req.body
-    if (!periodId || !activities || activities.length === 0) {
+    if (!periodId || !activities || (activities && activities.length === 0)) {
       throw new BadRequestError({
         details: util.getDetailArray([
           !periodId ? 'periodId is missing!' : undefined,

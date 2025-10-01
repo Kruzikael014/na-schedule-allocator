@@ -1,6 +1,7 @@
 
 export class ErrorBase extends Error {
   data: any
+  status = 500
   constructor(data: any) {
     super();
     this.data = data
