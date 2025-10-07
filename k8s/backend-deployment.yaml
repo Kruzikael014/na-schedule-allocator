@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: na-schedule-allocator-backend-deployment
+  labels:
+    app: na-schedule-allocator-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: na-schedule-allocator-backend
+  template:
+    metadata:
+      labels:
+        app: na-schedule-allocator-backend
+    spec:
+      containers:
+      - name: backend-container
+        image: registry.kube.slc.net/slc/na-schedule-allocator-backend:latest
+        ports:
+        - containerPort: 7070
+
+        envFrom:
+        - secretRef:
+            name: na-schedule-allocator-backend-secrets 
