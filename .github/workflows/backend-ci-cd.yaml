@@ -18,7 +18,7 @@ jobs:
   # job pertama dengan nama build_push_deploy
   build_push_deploy:
     name: Build, Push, & Deploy Image to Registry # nama yang lebih deskriptif
-    runs-on: self-hosted, Linux # dijalanin dimana, runner kah, linux-latest kah, ubuntu-latest kah
+    runs-on: self-hosted # dijalanin dimana, runner kah, linux-latest kah, ubuntu-latest kah
 
     steps:
       - name: Checkout Repository
