@@ -48,12 +48,10 @@ jobs:
       
       - name: Inject Kubeconfig and Setup Kubectl
         run: |
-          # Setup kubeconfig
           echo "${{ secrets.KUBECONFIG_STAGING }}" > $HOME/kubeconfig.yaml
           export KUBECONFIG=$HOME/kubeconfig.yaml
 
-          # cek koneksi
-          kubectl cluter-info
+          kubectl cluster-info
 
           # Install Kubectl (udah gaperlu karena kubeserver == runner server)
           # curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
