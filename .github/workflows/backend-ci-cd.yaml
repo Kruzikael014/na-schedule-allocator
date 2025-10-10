@@ -37,7 +37,6 @@ jobs:
           docker build -t ${{ env.REGISTRY }}/slc/${{ env.IMAGE_NAME }}:${{ github.sha }} -f ./server/Dockerfile ./server/
 
       - name: Push to registry using Docker
-        uses: docker/build-push-action@v5
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
