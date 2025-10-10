@@ -14,6 +14,8 @@ spec:
       labels:
         app: na-schedule-allocator-backend
     spec:
+      imagePullSecrets:
+        - name: harbor-pull-secret
       containers:
       - name: backend-container
         image: registry.kube.slc.net/slc/na-schedule-allocator-backend:latest
