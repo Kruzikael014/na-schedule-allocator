@@ -10,7 +10,8 @@ on:
 
 env:
   REGISTRY: registry.kube.slc.net
-  IMAGE_NAME: ${{ github.repository }}/na-schedule-allocator-backend
+  IMAGE_NAME: na-schedule-allocator-backend
+  
 # env -> define variable data non private biar bisa direuse gausa ketik berulang"
 
 # kumpulan dari step yang bakal dijalanin (bisa lebih dari 1)
@@ -61,7 +62,7 @@ jobs:
         run: |
           export KUBECONFIG=$HOME/kubeconfig.yaml
 
-          NEW_IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          NEW_IMAGE_TAG="${{ env.REGISTRY }}/slc/${{ env.IMAGE_NAME }}:${{ github.sha }}"
 
           # kubectl apply -f k8s/backend-deployment.yaml # better manual karena set image deployment/<deployment_name> itu lebih cepat dibandingkan apply, dengan syarat object sudah harus ada terlebih dahulu
 
