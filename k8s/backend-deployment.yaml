@@ -16,6 +16,12 @@ spec:
     spec:
       imagePullSecrets:
         - name: harbor-pull-secret
+
+      volumes:
+      - name: harbor-ca-volume
+        secret:
+          secretName: harbor-ca-cert
+        
       containers:
       - name: backend-container
         image: registry.kube.slc.net/slc/na-schedule-allocator-backend:latest
@@ -25,3 +31,8 @@ spec:
         envFrom:
         - secretRef:
             name: na-schedule-allocator-backend-secrets 
+
+      volumeMounts:
+        - name: harbor-ca-volume
+          mountPath: /etc/ssl/harbor/
+          readOnly: true
