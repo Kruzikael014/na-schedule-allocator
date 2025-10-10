@@ -38,10 +38,10 @@ jobs:
 
       - name: Push to registry using Docker
         run: |
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/slc/${{ env.IMAGE_NAME }}:${{ github.sha }}
 
           docker tag ${{ env.REGISTRY }}/slc/${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.REGISTRY }}/slc/${{ env.IMAGE_NAME }}:latest
       
       - name: Inject Kubeconfig and Setup Kubectl
         run: |
