@@ -64,6 +64,6 @@ jobs:
 
           kubectl apply -f k8s/backend-service.yaml
           
-          kubectl set image deployment/na-schedule-allocator-backend backend-container=$NEW_IMAGE_TAG
+          kubectl set image deployment/na-schedule-allocator-backend-deployment backend-container=$NEW_IMAGE_TAG
 
-          kubectl rollout status deployment/na-schedule-allocator-backend
+          kubectl rollout status deployment/na-schedule-allocator-backend-deployment
