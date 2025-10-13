@@ -8,15 +8,13 @@ RUN npm install
 
 COPY . .
 
-RUN prisma generate
+RUN npx prisma generate
 
 RUN npm run build
 
 FROM node:20-alpine
 
 WORKDIR /app
-
-RUN npx prisma generate
 
 COPY --from=builder /app/package.json ./
 
