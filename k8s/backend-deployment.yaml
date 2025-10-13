@@ -17,10 +17,10 @@ spec:
       imagePullSecrets:
         - name: harbor-pull-secret
 
-      volumes:
-      - name: harbor-ca-volume
-        secret:
-          secretName: harbor-ca-cert
+      # volumes:
+      # - name: harbor-ca-volume
+      #   secret:
+      #     secretName: harbor-ca-cert
         
       containers:
       - name: backend-container
@@ -32,7 +32,7 @@ spec:
         - secretRef:
             name: na-schedule-allocator-backend-secrets 
 
-      volumeMounts:
-        - name: harbor-ca-volume
-          mountPath: /etc/ssl/harbor/
-          readOnly: true
+        # volumeMounts:
+        #   - name: harbor-ca-volume
+        #     mountPath: /etc/ssl/harbor/
+        #     readOnly: true
