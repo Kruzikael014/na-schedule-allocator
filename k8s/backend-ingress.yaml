@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: backend-service-ingress
+  name: na-allocator-backend-service-ingress
   namespace: default
   annotations:
     ingress.kubernetes.io/ssl-redirect: "true" 
@@ -9,13 +9,13 @@ metadata:
 spec:
   tls:
   - hosts:
-    - na-allocator.apps.slc.net
+    - api.na-allocator.apps.slc.net
     secretName: slc-net-tls 
   rules:
-  - host: na-allocator.apps.slc.net
+  - host: api.na-allocator.apps.slc.net
     http:
       paths:
-        - path: /api # hmmm
+        - path: /
           pathType: Prefix
           backend:
             service:
