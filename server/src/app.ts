@@ -11,9 +11,9 @@ app.use(cors())
 app.use(express.json())
 
 // route lists
-app.use('/api/period', PeriodRouter)
-app.use('/api/activity', ActivityRouter)
-app.use('/api', RootRouter)
+app.use('/period', PeriodRouter)
+app.use('/activity', ActivityRouter)
+app.use('/', RootRouter)
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     const err = new NotFoundError()
