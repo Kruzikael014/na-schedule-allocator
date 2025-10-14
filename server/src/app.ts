@@ -3,6 +3,7 @@ import cors from "cors"
 import { PeriodRouter } from "./routes/period.route"
 import { NotFoundError } from "./lib/error"
 import { ActivityRouter } from "./routes/activity.route"
+import { RootRouter } from "./routes/root.route"
 
 const app = express()
 
@@ -12,6 +13,7 @@ app.use(express.json())
 // route lists
 app.use('/api/period', PeriodRouter)
 app.use('/api/activity', ActivityRouter)
+app.use('/api', RootRouter)
 
 app.use((req: Request, res: Response, next: NextFunction) => {
     const err = new NotFoundError()
