@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import './App.css'
 import { Header } from "./components/sections/header"
 import { UploadSection } from './components/sections/upload-section'
