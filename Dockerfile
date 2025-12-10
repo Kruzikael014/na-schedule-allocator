@@ -23,9 +23,7 @@ RUN rm /etc/nginx/conf.d/default.conf
 # Copy nginx.conf in the root of /app
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-RUN chmod +x /docker-entrypoint.sh
-
-ENTRYPOINT ["/docker-entrypoint.sh"]
+COPY config.js /usr/share/nginx/html/config.js
 
 EXPOSE 80
 
