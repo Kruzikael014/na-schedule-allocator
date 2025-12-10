@@ -95,7 +95,9 @@ jobs:
 
     - name: Trigger Rollout Update
       run: |
-        kubectl set image deployment/na-schedule-allocator-backend \
+        export KUBECONFIG=~/.kube/config
+        alias k=kubectl
+        k set image deployment/na-schedule-allocator-backend \
         na-schedule-allocator-backend=${{ steps.build.outputs.full_image_name }} -n default
 
-        kubectl rollout status deployment/na-schedule-allocator-backend -n default
+        k rollout status deployment/na-schedule-allocator-backend -n default
