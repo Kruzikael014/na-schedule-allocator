@@ -87,5 +87,9 @@ interface HeaderProps {
   periods: Period[] | null
 }
 
+interface FileUploadProps {
+  onFileUpload: (file: File) => void
+}
+
 export type { UploadedFiles, Division, Team, ShiftCategory, ActivityData, ActivityLegend, WorkingShiftData, RoomPicData, CalibSlot, Period, Activity }
-export type { UploadSectionProps, ChecklistItemProps, ScheduleTableProps, HeaderProps }
+export type { UploadSectionProps, ChecklistItemProps, ScheduleTableProps, HeaderProps, FileUploadProps }

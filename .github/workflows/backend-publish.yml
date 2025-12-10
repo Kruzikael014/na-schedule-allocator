@@ -101,3 +101,5 @@ jobs:
         na-schedule-allocator-backend=${{ steps.build.outputs.full_image_name }} -n default
 
         kubectl rollout status deployment/na-schedule-allocator-backend -n default
+
+        
