@@ -34,6 +34,8 @@ jobs:
     - name: Calculate Next Version
       id: version
       run: |
+        git fetch --tags origin
+        
         # find last tag starts with backend-v
         LAST_TAG=$(git describe --tags --match "${{ env.TAG_PREFIX }}*" --abbrev=0 2>/dev/null || echo "${{ env.TAG_PREFIX }}0.0.0")
 
@@ -88,8 +90,6 @@ jobs:
 
     - name: Push New Tag to Git
       run: |
-        git fetch --tags origin
-
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
         git tag ${{ steps.version.outputs.new_tag }}
