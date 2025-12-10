@@ -88,6 +88,8 @@ jobs:
 
       - name: Push New Tag to Git
         run: |
+          git fetch --tags origin
+
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
           git tag ${{ steps.version.outputs.new_tag }}
