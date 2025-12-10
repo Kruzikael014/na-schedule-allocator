@@ -1,0 +1,104 @@
+name: Frontend - Build & Push
+
+on:
+  workflow_dispatch:
+    inputs:
+      description: 'Select version changes'
+      required: true
+      default: 'patch'
+      type: choice
+      options:
+        - patch
+        - minor
+        - major
+
+permissions:
+  contents: write
+
+env:
+  CONTEXT: .
+  IMAGE_NAME: na-schedule-allocator-frontend
+  TAG_PREFIX: frontend-v
+  HARBOR_PROJECT: slc
+
+jobs:
+  build-push:
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Calculate Next Version
+        id: version
+        run: |
+          # find last tag starts with backend-v
+          LAST_TAG=$(git describe --tags --match "${{ env.TAG_PREFIX }}*" --abbrev=0 2>/dev/null || echo "${{ env.TAG_PREFIX }}0.0.0")
+
+          echo "Latest Tag : $LAST_TAG"
+
+          # delete prefix leaving only the version
+          VERSION=${LAST_TAG#${{ env.TAG_PREFIX }}}
+
+          # split version using '.' assign to variable named major minor patch
+          IFS='.' read -r major minor patch <<< "$VERSION"
+
+          # add the version according to given input in workflow_dispatch
+          if [ "${{ inputs.version_type }}" == "major" ]; then
+            major=$((major + 1)); minor=0; patch=0
+          elif [ "${{ inputs.version_type }}" == "minor" ]; then
+            minor=$((minor + 1)); patch=0
+          else
+            patch=$((patch + 1))
+          fi
+
+          # Combine prefix + new version
+          NEW_TAG="${{ env.TAG_PREFIX }}$major.$minor.$patch"
+
+          echo "New Tag : $NEW_TAG"
+
+          # save to a variable so other step can use
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+
+      - name: Login to Harbor
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ secrets.HARBOR_URL }}
+          username: ${{ secrets.HARBOR_USERNAME }}
+          password: ${{ secrets.HARBOR_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        id: build
+        run: | 
+          FULL_IMAGE_NAME=${{ secrets.HARBOR_URL }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.new_tag }}
+
+          echo "full_image_name=$FULL_IMAGE_NAME" >> $GITHUB_OUTPUT
+
+          echo "Building Docker Image ..."
+          docker build -t $FULL_IMAGE_NAME ${{ env.CONTEXT }}
+
+          echo "Pushing $FULL_IMAGE_NAME ..."
+          docker push $FULL_IMAGE_NAME
+
+          echo "Associate $FULL_IMAGE_NAME with Tag latest and Push"
+          docker tag $FULL_IMAGE_NAME ${{ secrets.HARBOR_URL }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:latest
+          docker push ${{ secrets.HARBOR_URL }}/${{ env.HARBOR_PROJECT }}/${{ env.IMAGE_NAME }}:latest
+
+      - name: Push New Tag to Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git tag ${{ steps.version.outputs.new_tag }}
+          git push origin ${{ steps.version.outputs.new_tag }}
+
+      - name: Trigger Rollout Update
+        run: |
+          export KUBECONFIG=~/.kube/config
+
+          kubectl set image deployment/na-schedule-allocator-frontend \
+          na-schedule-allocator-frontend=${{ steps.build.output.full_image_name }} -n default
+
+          kubectl rollout status deployment/na-schedule-allocator-frontend -n default
+
+

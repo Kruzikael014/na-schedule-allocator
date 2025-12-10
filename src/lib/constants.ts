@@ -12,7 +12,7 @@ export const ACTIVITY_LEGENDS: ActivityLegend[] = [
 ]
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL,
+  baseURL: window.configs?.VITE_BACKEND_URL || 'http://localhost:3000',
 
   headers: {
     Accept: "application/json",

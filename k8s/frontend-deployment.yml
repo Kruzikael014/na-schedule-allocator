@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: na-schedule-allocator-frontend
+  labels:
+    app: na-schedule-allocator-frontend
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: na-schedule-allocator-frontend
+
+  template:
+    metadata:
+      labels:
+        app: na-schedule-allocator-frontend
+    spec:
+      imagePullSecrets:
+        - name: harbor-cred
+      containers:
+        - name: na-schedule-allocator-frontend
+          image: registry.kube.slc.net/slc/na-schedule-allocator-frontend:latest
+          env:
+            - name: VITE_BACKEND_URL
+              valueFrom: { configMapKeyRef: { name: na-allocator-frontend-config, key: VITE_BACKEND_URL } }
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: na-schedule-allocator-frontend-service
+spec:
+  selector:
+    app: na-schedule-allocator-frontend
+  type: ClusterIP
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
