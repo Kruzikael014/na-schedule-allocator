@@ -1,0 +1,24 @@
+apiVersion: networking.k8s/io/v1
+kind: Ingress
+metadata:
+  name: na-schedule-allocator-backend-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  tls:
+    - hosts:
+        - api-nallocator.apps.slc.net
+      secretName: wildcard-apps-slc-net-tls-secret
+  
+  rules:
+    - host: api-nallocator.apps.slc.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: na-schedule-allocator-backend-service
+                port:
+                  number: 80
