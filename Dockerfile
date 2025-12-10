@@ -23,9 +23,9 @@ RUN rm /etc/nginx/conf.d/default.conf
 # Copy nginx.conf in the root of /app
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# COPY config.js /usr/share/nginx/html/config.js
+COPY env-injector.sh /docker-entrypoint.d/99-env-injector.sh
 
-ENTRYPOINT [ "/docker-entrypoint.sh" ]
+RUN chmod +x /docker-entrypoint.d/99-env-injector.sh
 
 EXPOSE 80
 
