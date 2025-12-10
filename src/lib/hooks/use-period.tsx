@@ -15,7 +15,7 @@ export default function usePeriod() {
       }
     }
     fetchData()
-  }, [periods])
+  }, [])
 
   return { periods }
 }
