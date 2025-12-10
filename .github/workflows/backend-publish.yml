@@ -14,7 +14,7 @@ on:
         - major
 
 env:
-  CONTEXT: /server
+  CONTEXT: ./server
   IMAGE_NAME: na-schedule-allocator-backend
   TAG_PREFIX: backend-v
   HARBOR_PROJECT: slc
