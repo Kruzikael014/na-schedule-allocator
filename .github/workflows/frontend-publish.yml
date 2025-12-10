@@ -98,7 +98,7 @@ jobs:
           export KUBECONFIG=~/.kube/config
 
           kubectl set image deployment/na-schedule-allocator-frontend \
-          na-schedule-allocator-frontend=${{ steps.build.output.full_image_name }} -n default
+          na-schedule-allocator-frontend=${{ steps.build.outputs.full_image_name }} -n default
 
           kubectl rollout status deployment/na-schedule-allocator-frontend -n default
 

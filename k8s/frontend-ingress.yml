@@ -17,7 +17,7 @@ spec:
         paths:
           - path: /
             pathType: Prefix
-            frontend:
+            backend:
               service:
                 name: na-schedule-allocator-frontend-service
                 port:
