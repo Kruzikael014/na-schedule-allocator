@@ -35,9 +35,13 @@ jobs:
       id: version
       run: |
         git fetch --tags origin
-        
+
         # find last tag starts with backend-v
-        LAST_TAG=$(git describe --tags --match "${{ env.TAG_PREFIX }}*" --abbrev=0 2>/dev/null || echo "${{ env.TAG_PREFIX }}0.0.0")
+        LAST_TAG=$(git tag -l "${{ env.TAG_PREFIX }}*" --sort=-v:refname | head -n 1)
+
+        if [ -z "$LAST_TAG" ]; then
+          LAST_TAG="${{ env.TAG_PREFIX }}0.0.0"
+        fi
 
         echo "Latest Tag : $LAST_TAG"
 
