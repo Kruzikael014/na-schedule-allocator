@@ -12,10 +12,6 @@ function pushIfNotExists<T = any>(arr: T[], obj: T, specialCon?: (obj: T) => boo
     arr.push(obj)
 }
 
-const a = [1, 2, 3, 4]
-
-
-
 function shuffleArray<T = any>(array: T[]): T[] {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
