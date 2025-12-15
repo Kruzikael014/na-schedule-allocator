@@ -1,7 +1,6 @@
 
 type UploadedFiles = {
   shiftFile?: File
-  roomPicFile?: File
   teachingCollegeFile?: File
   transactionFile?: File
 }
@@ -10,9 +9,9 @@ type Division = 'NetSys' | 'Software' | 'Event' | 'Asset'
 
 type Team = 'A' | 'B'
 
-type ShiftCategory = 'P' | 'M'
+type ShiftCategory = 'P' | 'M' | "N"
 
-type WorkingShiftData = {
+type Staff = {
   initial: string
   shifts: ShiftCategory[]
   division: string
@@ -59,6 +58,12 @@ type Activity = {
   periodId: string
 }
 
+type Room = {
+  description: string
+  weight: number
+  candidates: string[]
+}
+
 interface UploadSectionProps {
   files: UploadedFiles
   setFiles: ((file: File) => void)[]
@@ -91,5 +96,5 @@ interface FileUploadProps {
   onFileUpload: (file: File) => void
 }
 
-export type { UploadedFiles, Division, Team, ShiftCategory, ActivityData, ActivityLegend, WorkingShiftData, RoomPicData, CalibSlot, Period, Activity }
+export type { Staff, Room, UploadedFiles, Division, Team, ShiftCategory, ActivityData, ActivityLegend, RoomPicData, CalibSlot, Period, Activity }
 export type { UploadSectionProps, ChecklistItemProps, ScheduleTableProps, HeaderProps, FileUploadProps }

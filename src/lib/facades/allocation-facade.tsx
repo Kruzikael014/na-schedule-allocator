@@ -7,14 +7,14 @@ function isPicAvailable(pic: string, day: string, shift: string, schedule: Activ
   return true
 }
 
-const minAmountOfAvailableStaff = 5
+const MIN_AMOUNT_OF_AVAILABLE_STAFF = 5
 
 const sameDaySameShift = (e: ActivityData, day: string, shift: string): boolean => e.day === day && e.shift === shift
 
 function isStaffCountSufficient(day: string, shift: string, schedule: ActivityData[]): { isSufficient: boolean, freeStaff: string[] } {
   const unavailableStaff = schedule.filter(e => sameDaySameShift(e, day, shift) && [21, 22, 23, 24].includes(e.code)).map(e => e.pic)
   const freeStaff = schedule.filter(e => !unavailableStaff.includes(e.pic) && sameDaySameShift(e, day, shift)).map(e => e.pic)
-  return { isSufficient: freeStaff.length >= minAmountOfAvailableStaff, freeStaff }
+  return { isSufficient: freeStaff.length >= MIN_AMOUNT_OF_AVAILABLE_STAFF, freeStaff }
 }
 
 function isRoomFree(room: string, day: string, shift: string, transactions: ActivityData[]): boolean {

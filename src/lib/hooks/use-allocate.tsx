@@ -1,51 +1,111 @@
-import { useCallback } from "react";
-import type { ActivityData, CalibSlot, RoomPicData, WorkingShiftData } from "../types";
+import { useCallback, useState } from "react";
+import type { ActivityData, CalibSlot, Division, RoomPicData, Staff } from "../types";
 import { usePapa } from "./use-papa";
 import { isStaffCountSufficient, dailyStandbyCount, tryFindSlots, findIncompleteStandbyDay, isPicAvailable } from "../facades/allocation-facade";
-import { randomNumber } from "../facades/util";
+import { pushIfNotExists, randomNumber, shuffleArray } from "../facades/util";
+import { getRoom, getRoomWeight, popUnmatchingRoomPic } from "../facades/room-allocation-facade";
+
+const shiftDetail: { [key: string]: any } = {
+  P: {
+    normal: [1, 2, 3, 4],
+    sat: [1, 2, 3]
+  },
+  N: {
+    normal: [2, 3, 4, 5],
+    sat: [2, 3, 4]
+  },
+  M: {
+    normal: [3, 4, 5, 6],
+    sat: [3, 4, 5]
+  }
+}
+
+const getShiftArr = (category: string, day: number): number[] => shiftDetail[category][day === 6 ? 'sat' : 'normal']
 
 export function useAllocate() {
   const { parse } = usePapa()
 
-  const getShiftNum = useCallback((shiftCategory: string, day: number) => {
-    return shiftCategory === 'P' ? (day != 6 ? [1, 2, 3, 4] : [1, 2, 3]) : (day != 6 ? [3, 4, 5, 6] : [3, 4, 5])
-  }, [])
-
-  const allocateWorking = useCallback(async (workingShiftFile: File) => {
-    const shiftData = await parse<WorkingShiftData>(workingShiftFile, row => ({
+  const allocateWorking = async (shiftFile: File): Promise<{ workingSchedule: ActivityData[], staff: Staff[] }> => {
+    const staff = await parse<Staff>(shiftFile, row => ({
       division: row.division,
       initial: row.initial,
       shifts: [row.monday, row.tuesday, row.wednesday, row.thursday, row.friday, row.saturday],
       team: row.team
     }))
-    return shiftData.flatMap(data => {
-      return data.shifts.flatMap((shiftCategory, d) => {
-        const day = d + 1
-        const shiftNums = getShiftNum(shiftCategory, day)
 
-        return shiftNums.map(shiftNum => ({
-          code: 99,
-          description: 'Working',
-          room: null,
-          day: String(day),
-          shift: String(shiftNum),
-          pic: data.initial
-        }))
-      })
-    })
-  }, [])
-
-  const allocateTeachingCollege = useCallback(async (teachingCollegeData: File) => await parse<ActivityData>(teachingCollegeData, (row) => ({ ...row, code: Number(row.code) })), [])
-
-
-  function pushifNotExists<T = any>(arr: T[], obj: T, conditionCallback: (e: T) => boolean) {
-    const found = arr.findIndex(conditionCallback)
-    if (found === -1) arr.push(obj)
+    return {
+      workingSchedule: staff.flatMap(data => {
+        return data.shifts.flatMap((category, index) => {
+          const day = index + 1
+          const shiftArr = getShiftArr(category, day)
+          return shiftArr.map(shiftNumber => ({
+            code: 99,
+            description: 'Working',
+            room: null,
+            day: String(day),
+            shift: String(shiftNumber),
+            pic: data.initial
+          }))
+        })
+      }),
+      staff: staff
+    }
   }
 
-  function eliminateExistingCalibration({ room, pic }: RoomPicData, schedule: ActivityData[], unAllocated: RoomPicData[]) {
-    pushifNotExists(unAllocated, { pic: pic, room: room }, (e) => e.room === room)
-    schedule.filter(e => e.code === 23 && e.room === room).forEach(cal => schedule.splice(schedule.indexOf(cal), 1))
+  const allocateTeachingCollege = async (teachingCollegeFile: File) =>
+    await parse<ActivityData>(teachingCollegeFile, row => ({ ...row, code: Number(row.code) }))
+
+  const allocateRoomPIC = async (staff: Staff[], schedule: ActivityData[], transaction: ActivityData[]): Promise<RoomPicData[]> => {
+    if (staff.length === 0 || schedule.length === 0 || transaction.length === 0) return []
+
+    const result: Record<string, { weight: number, count: number, room: string[] }> = {}
+    staff.forEach(e => {
+      result[e.initial] = { weight: 0, count: 0, room: [] }
+    })
+
+    for (const r of getRoom(staff)) {
+      // mekanisme dikitin candidate sampai cuman 1
+      popUnmatchingRoomPic(r, schedule, transaction)
+
+      if (r.candidates.length === 0) {
+        console.warn(`No candidate can calib ${JSON.stringify(r)}!`)
+        continue
+      }
+
+      const MAX_WEIGHT = 4, MAX_COUNT = 3
+      r.candidates = r.candidates.filter(e => {
+        const curr = result[e]
+        const futureWeight = curr.weight + r.weight
+        const futureCount = curr.count + 1
+        return futureWeight <= MAX_WEIGHT && futureCount <= MAX_COUNT
+      })
+
+      if (r.candidates.length === 0) {
+        console.warn('No candidate can take this calib anymore!')
+        continue
+      }
+
+      if (r.candidates.length > 1) {
+        shuffleArray(r.candidates)
+        r.candidates.sort((_a, _b) => {
+          const a = result[_a]
+          const b = result[_b]
+
+          if (a.count !== b.count)
+            return a.count - b.count
+
+          return a.weight - b.weight
+        })
+
+        r.candidates = [r.candidates[0]]
+      }
+
+      result[r.candidates[0]].count += 1
+      result[r.candidates[0]].weight += r.weight
+      result[r.candidates[0]].room.push(r.description)
+    }
+
+    return Object.entries(result).flatMap(([k, v]) => (v.room.map(e => ({ pic: k, room: e }))))
   }
 
   function reallocateCalibration(
@@ -54,6 +114,10 @@ export function useAllocate() {
     transaction: ActivityData[],
     untouchedSchedule: ActivityData[]
   ): CalibSlot[] | null {
+    function eliminateExistingCalibration({ room, pic }: RoomPicData, schedule: ActivityData[], unAllocated: RoomPicData[]) {
+      pushIfNotExists<RoomPicData>(unAllocated, { pic: pic, room: room }, (e) => e.room === room)
+      schedule.filter(e => e.code === 23 && e.room === room).forEach(cal => schedule.splice(schedule.indexOf(cal), 1))
+    }
 
     function delayReallocation() {
       unAllocated.push({ pic, room })
@@ -94,20 +158,18 @@ export function useAllocate() {
     return slots
   }
 
-  const allocateCalibration = useCallback(async (workTeachColl: ActivityData[], roomPicFile: File, transactionFile: File) => {
+  const allocateCalibration = useCallback(async (workTeachColl: ActivityData[], roomPic: RoomPicData[], transactions: ActivityData[]): Promise<{ calibrationSchedule: ActivityData[], isSafe: boolean }> => {
     const untouchedSchedule = [...workTeachColl]
     const schedule = [...workTeachColl]
-    const _roomPic = await parse<RoomPicData>(roomPicFile)
-    const _transaction = await parse<ActivityData>(transactionFile)
 
     const unAllocated: RoomPicData[] = []
 
-    for (const { pic, room } of _roomPic) {
-      let slots = tryFindSlots({ pic, room }, schedule, _transaction)
+    for (const { pic, room } of roomPic) {
+      let slots = tryFindSlots({ pic, room }, schedule, transactions)
 
       if (!slots) {
         console.warn(`⚠️ Try reallocate for ${room}`)
-        pushifNotExists<RoomPicData>(unAllocated, { pic: pic, room: room }, (e) => e.room === room)
+        pushIfNotExists<RoomPicData>(unAllocated, { pic: pic, room: room }, (e) => e.room === room)
         unAllocated.push({ pic, room })
         continue
       }
@@ -129,7 +191,7 @@ export function useAllocate() {
     let maxAttempt = unAllocated.length * 150
 
     while (unAllocated.length > 0 && attempt < maxAttempt) {
-      const slots = reallocateCalibration(unAllocated, schedule, _transaction, untouchedSchedule)
+      const slots = reallocateCalibration(unAllocated, schedule, transactions, untouchedSchedule)
       if (slots) {
         for (const { day, shift } of slots) {
           const room = unAllocated[0].room
@@ -148,7 +210,10 @@ export function useAllocate() {
       attempt++
     }
 
-    return schedule.filter(e => e.code === 23)
+    return {
+      calibrationSchedule: schedule.filter(e => e.code === 23),
+      isSafe: unAllocated.length === 0
+    }
   }, [])
 
   function reallocateStandby(countMap: Map<string, number>, schedule: ActivityData[]) {
@@ -193,20 +258,14 @@ export function useAllocate() {
     }
   }
 
-  const allocateStandby = useCallback(async (workTeachCollCal: ActivityData[], workingShiftFile: File) => {
-    const schedule = [...workTeachCollCal]
-    const shiftData = await parse<WorkingShiftData>(workingShiftFile, row => ({
-      division: row.division,
-      initial: row.initial,
-      shifts: [row.monday, row.tuesday, row.wednesday, row.thursday, row.friday, row.saturday],
-      team: row.team,
-    }))
+  const allocateStandby = useCallback(async (activities: ActivityData[], staff: Staff[]) => {
+    const schedule = [...activities]
     const countMap = new Map<string, number>()
 
-    const getTeam = (initial: string): string => shiftData.find(e => e.initial === initial)!.team
+    const getTeam = (initial: string): string => staff.find(e => e.initial === initial)!.team
 
     // initialize countMap
-    for (const { initial } of shiftData) countMap.set(initial, 0)
+    for (const { initial } of staff) countMap.set(initial, 0)
 
     // saturday standby
     for (let s = 1; s <= 5; s++) {
@@ -296,6 +355,5 @@ export function useAllocate() {
     return schedule.filter(e => e.code === 24)
   }, [])
 
-
-  return { allocateWorking, allocateTeachingCollege, allocateCalibration, allocateStandby }
+  return { allocateWorking, allocateTeachingCollege, allocateRoomPIC, allocateCalibration, allocateStandby }
 }

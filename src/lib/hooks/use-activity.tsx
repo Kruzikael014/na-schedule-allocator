@@ -4,11 +4,11 @@ import { API } from "../constants"
 
 export default function useActivity({ periodId }: { periodId: string | null }) {
   const [hasAllocated, setHasAllocated] = useState<boolean>(false)
-  const [activities, setActivities] = useState<ActivityData[] | null>(null)
+  const [activities, setActivities] = useState<ActivityData[]>([])
 
   const fetchData = async () => {
     if (!periodId) {
-      setActivities(null)
+      setActivities([])
       return
     }
     try {
@@ -43,7 +43,7 @@ export default function useActivity({ periodId }: { periodId: string | null }) {
         }))
       })
       setHasAllocated(true)
-      fetchData()
+      await fetchData()
     } catch (ex) {
       console.error(ex)
     }
