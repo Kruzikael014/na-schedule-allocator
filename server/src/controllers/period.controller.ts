@@ -48,6 +48,8 @@ export const getPeriods = async (req: Request, res: Response) => {
     const result = await periodService.getPeriods()
     res.status(200).json(result)
   } catch (error: any | ErrorBase) {
-    res.status(error.status).json(error.data)
+    console.log('test debug' + error)
+    if (error instanceof ErrorBase)
+      res.status(error.status).json(error.data)
   }
 }

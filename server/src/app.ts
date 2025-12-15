@@ -3,6 +3,7 @@ import cors from "cors"
 import { PeriodRouter } from "./routes/period.route"
 import { NotFoundError } from "./lib/error"
 import { ActivityRouter } from "./routes/activity.route"
+import { RoomPicRouter } from "./routes/roompic.route"
 import { RootRouter } from "./routes/root.route"
 
 const app = express()
@@ -13,6 +14,7 @@ app.use(express.json())
 // route lists
 app.use('/period', PeriodRouter)
 app.use('/activity', ActivityRouter)
+app.use('/room-pic', RoomPicRouter)
 app.use('/', RootRouter)
 
 app.use((req: Request, res: Response, next: NextFunction) => {

@@ -1,9 +1,6 @@
-import { PrismaClient } from "@prisma/client"
+import prisma from "../lib/prisma"
 import { CreateActivitiesRequestDto, GetActivitiesResponseDto } from "../data/activity.dto"
 import { InternalError, NotFoundError } from "../lib/error"
-import { CreatePeriodDto } from "../data/period.dto"
-
-const prisma = new PrismaClient()
 
 export const getActivities = async (periodId: string): Promise<GetActivitiesResponseDto> => {
   const result = await prisma.period.findFirst({

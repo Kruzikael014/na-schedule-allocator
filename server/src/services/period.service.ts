@@ -1,9 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../lib/prisma"
 import { CreatePeriodDto, PeriodResponseDto, UpdatePeriodDto, UpdatePresentPeriodDto, UpdatePresentPeriodResponseDto } from "../data/period.dto";
 import { InternalError, NotFoundError } from "../lib/error";
 import { cleanPayload } from "../lib/util";
-
-const prisma = new PrismaClient()
 
 export const createPeriod = async (data: CreatePeriodDto) => {
   const newPeriod = await prisma.period.create({
