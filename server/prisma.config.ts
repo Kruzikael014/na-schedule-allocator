@@ -2,6 +2,8 @@ import 'dotenv/config';
 import type { PrismaConfig } from 'prisma';
 import { env } from 'prisma/config';
 
+console.log("The env value : " + env('DATABASE_URL'))
+
 export default {
   schema: 'prisma/schema.prisma',
   migrations: {
