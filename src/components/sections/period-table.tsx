@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/pagination"
 import { useCallback, useState } from "react"
 import { Button } from "../ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "../ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "../ui/dialog"
 import { Checkbox } from "../ui/checkbox"
 import usePeriod from "@/lib/hooks/use-period"
 import toast from "react-hot-toast"

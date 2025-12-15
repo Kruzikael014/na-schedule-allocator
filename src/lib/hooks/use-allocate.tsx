@@ -1,9 +1,9 @@
-import { useCallback, useState } from "react";
-import type { ActivityData, CalibSlot, Division, RoomPicData, Staff } from "../types";
+import { useCallback } from "react";
+import type { ActivityData, CalibSlot, RoomPicData, Staff } from "../types";
 import { usePapa } from "./use-papa";
 import { isStaffCountSufficient, dailyStandbyCount, tryFindSlots, findIncompleteStandbyDay, isPicAvailable } from "../facades/allocation-facade";
 import { pushIfNotExists, randomNumber, shuffleArray } from "../facades/util";
-import { getRoom, getRoomWeight, popUnmatchingRoomPic } from "../facades/room-allocation-facade";
+import { getRoom, popUnmatchingRoomPic } from "../facades/room-allocation-facade";
 
 const shiftDetail: { [key: string]: any } = {
   P: {

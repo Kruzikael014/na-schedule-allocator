@@ -10,7 +10,6 @@ import { usePapa } from '@/lib/hooks/use-papa'
 import toast from 'react-hot-toast'
 import useRoom from '@/lib/hooks/use-room'
 import RoomPicTable from '../sections/roompic-table'
-import { Card } from '../ui/card'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion'
 
 function App() {
