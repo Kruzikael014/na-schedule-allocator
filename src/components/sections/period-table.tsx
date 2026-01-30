@@ -88,12 +88,12 @@ export default function PeriodTable() {
               </TableRow>
             ))
           ) : (
-            <TableRow>
-              <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
-                No periods yet. Create one to get started.
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                  No periods yet. Create one to get started.
               </TableCell>
-            </TableRow>
-          )}
+              </TableRow>
+            )}
         </TableBody>
       </Table>
 

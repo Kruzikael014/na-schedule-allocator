@@ -1,5 +1,5 @@
 import prisma from "../lib/prisma"
-import { CreateActivitiesRequestDto, GetActivitiesResponseDto } from "../data/activity.dto"
+import { CreateActivitiesRequestDto, GetActivitiesResponseDto, UpdateActivityDto } from "../data/activity.dto"
 import { InternalError, NotFoundError } from "../lib/error"
 
 export const getActivities = async (periodId: string): Promise<GetActivitiesResponseDto> => {
@@ -19,6 +19,7 @@ export const getActivities = async (periodId: string): Promise<GetActivitiesResp
       isPresent: result.isPresent
     },
     activities: result.activities.map(e => ({
+      activityId: Number(e.activityId),
       code: e.code,
       day: e.day,
       description: e.description,
@@ -49,4 +50,25 @@ export const createActivities = async (data: CreateActivitiesRequestDto) => {
   })
   if (!result) throw new InternalError()
   return result
+}
+
+export const updateActivity = async (data: UpdateActivityDto) => {
+  const { activityId, ...rest } = data
+
+  const result = await prisma.activity.update({
+    where: { activityId },
+    data: {
+      ...(rest.description !== undefined && { description: rest.description }),
+      ...(rest.room !== undefined && { room: rest.room }),
+      ...(rest.day !== undefined && { day: rest.day }),
+      ...(rest.shift !== undefined && { shift: rest.shift }),
+      ...(rest.pic !== undefined && { pic: rest.pic }),
+      ...(rest.code !== undefined && { code: rest.code }),
+    }
+  })
+
+  return {
+    ...result,
+    activityId: Number(result.activityId)
+  }
 }

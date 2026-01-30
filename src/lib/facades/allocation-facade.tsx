@@ -40,7 +40,7 @@ function findIncompleteStandbyDay(schedule: ActivityData[]): { day: string, shif
   return null
 }
 
-const shiftPriority = [3, 4, 2, 5, 1, 6]
+const shiftPriority = [6, 3, 4, 2, 5, 1]
 
 function findCalibSlot(pic: string, room: string, schedule: ActivityData[], transactions: ActivityData[], ignoreStaffCountAvailability: boolean = false): CalibSlot[] {
   const candidates: CalibSlot[] = []

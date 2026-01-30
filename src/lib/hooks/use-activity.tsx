@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react"
 import type { ActivityData } from "../types"
 import { API } from "../constants"
+import toast from "react-hot-toast"
 
 export default function useActivity({ periodId }: { periodId: string | null }) {
   const [hasAllocated, setHasAllocated] = useState<boolean>(false)
@@ -12,11 +13,23 @@ export default function useActivity({ periodId }: { periodId: string | null }) {
       return
     }
     try {
-      const result = await (await API.get(`/activity/${periodId}`)).data
+      const result: any = await (await API.get(`/activity/${periodId}`)).data
       setActivities(result.activities)
       setHasAllocated(true)
     } catch (ex) {
       console.error(ex)
+    }
+  }
+
+  const updateActivity = async ({ day, id, pic, shift }: { id: string, pic: string, day: string, shift: string }) => {
+    const result: any = await (await API.put(`/activity/${id}`, {
+      pic: pic, day: day, shift: shift
+    })).data
+    if (result) {
+      await fetchData()
+      toast.success('Updated!', {
+        icon: '😉'
+      })
     }
   }
 
@@ -49,5 +62,5 @@ export default function useActivity({ periodId }: { periodId: string | null }) {
     }
   }
 
-  return { hasAllocated, setHasAllocated, activities, setActivities, saveActivity }
+  return { updateActivity, hasAllocated, setHasAllocated, activities, setActivities, saveActivity }
 }

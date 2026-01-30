@@ -25,3 +25,11 @@ export const getRoomPic = async (periodId?: string) => {
   return result.map(formatResponse)
 }
 
+export const clearRoomPic = async (periodId: string) => {
+  const res = await prisma.roomPic.deleteMany({
+    where: {
+      periodId: periodId
+    }
+  })
+  return res.count > 0
+}

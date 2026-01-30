@@ -1,6 +1,7 @@
 import { PeriodResponseDto } from "./period.dto"
 
 interface ActivityResponseDto {
+    activityId?: number
     description: string
     room: string | null
     day: string
@@ -19,4 +20,14 @@ interface CreateActivitiesRequestDto {
     activities: ActivityResponseDto[]
 }
 
-export { ActivityResponseDto, GetActivitiesResponseDto, CreateActivitiesRequestDto }
+interface UpdateActivityDto {
+    activityId: number
+    description?: string
+    room?: string | null
+    day?: string
+    shift?: string
+    pic?: string
+    code?: number
+}
+
+export { UpdateActivityDto, ActivityResponseDto, GetActivitiesResponseDto, CreateActivitiesRequestDto }

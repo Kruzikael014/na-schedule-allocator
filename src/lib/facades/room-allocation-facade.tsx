@@ -4,18 +4,23 @@ import { isPicAvailable, isRoomFree } from "./allocation-facade"
 const getRoomCandidates = (room: string, staff: Staff[]): string[] => {
   const NETSYS_ONLY = ['601', '603']
   const SOFTWARE_ONLY = ['706', '708', '710']
+  const ZENLI_ONLY = ['606']
+  const MAC_ONLY = ['711A']
+  const MAC_USER = ['IO', 'HI', 'YD']
   if (NETSYS_ONLY.includes(room)) return staff.filter(s => s.division === 'NetSys').map(s => s.initial)
+  else if (MAC_ONLY.includes(room)) return staff.filter(s => MAC_USER.includes(s.initial)).map(s => s.initial)
+  else if (ZENLI_ONLY.includes(room)) return staff.filter(s => s.initial === 'ZN').map(s => s.initial)
   else if (SOFTWARE_ONLY.includes(room)) return staff.filter(s => s.division === 'Software').map(s => s.initial)
   else return staff.map(s => s.initial)
 }
 
 const roomWeight: Record<string, number> = {
+  '606': 0,
   '601': 3,
   '602': 1,
   '603': 3,
   '604': 1,
   '605': 1,
-  '606': 0,
   '608': 1,
   '609': 1,
   '610': 1,
@@ -27,7 +32,9 @@ const roomWeight: Record<string, number> = {
   '626': 1,
   '627': 2,
   '628': 1,
-  '629': 3,
+  '629': 1,
+  '630': 1,
+  '631': 3,
   '706': 3,
   '708': 3,
   '710': 3,
@@ -90,7 +97,6 @@ const popUnmatchingRoomPic = (room: Room, schedule: ActivityData[], transactions
           calibable[day - 1].push(d + s)
       }
     }
-
 
     const cat1 = (calibable[0].length >= 1) && ((calibable[3].length + calibable[4].length) >= 1),
       cat2 = (calibable[1].length >= 1) && (calibable[4].length >= 1)

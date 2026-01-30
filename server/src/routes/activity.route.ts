@@ -7,5 +7,6 @@ const router = Router({
 
 router.post('/', controller.createActivities)
 router.get('/:periodId', controller.getActivities)
+router.put('/:activityId', controller.updateActivity)
 
 export { router as ActivityRouter }

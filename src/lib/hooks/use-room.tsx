@@ -2,15 +2,13 @@ import { useEffect, useState } from "react";
 import type { RoomPicData } from "../types";
 import { API } from "../constants";
 
-
-
 export default function useRoom({ periodId }: { periodId: string | null }) {
   const [roomPic, setRoomPic] = useState<RoomPicData[]>([])
 
   const fetchData = async () => {
     if (!periodId) return
     try {
-      const result = await (await API.get(`/room-pic/${periodId}`)).data
+      const result: any = await (await API.get(`/room-pic/${periodId}`)).data
       setRoomPic(result)
     } catch (error) {
       console.error(error)
@@ -21,8 +19,17 @@ export default function useRoom({ periodId }: { periodId: string | null }) {
     fetchData()
   }, [periodId])
 
+  const clearRoomPic = async (periodId: string) => {
+    try {
+      await API.delete(`/room-pic/${periodId}/clear`)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   const saveRoomPic = async (roomPic: RoomPicData[]) => {
     try {
+      await clearRoomPic(periodId!)
       const res = await API.post('/room-pic/bulk', {
         picRooms: roomPic,
         periodId: periodId
@@ -34,5 +41,5 @@ export default function useRoom({ periodId }: { periodId: string | null }) {
     }
   }
 
-  return { roomPic, setRoomPic, saveRoomPic }
+  return { roomPic, setRoomPic, saveRoomPic, clearRoomPic }
 }

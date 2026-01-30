@@ -22,8 +22,9 @@ function App() {
   const setTeachingCollegeFile = useCallback((file: File) => setFiles(prev => ({ ...prev, teachingCollegeFile: file })), [])
   const setTransactionFile = useCallback((file: File) => setFiles(prev => ({ ...prev, transactionFile: file })), [])
   const { periods } = usePeriod()
-  const { hasAllocated, setHasAllocated, saveActivity, activities, setActivities } = useActivity({ periodId: selectedPeriod })
+  const { hasAllocated, setHasAllocated, saveActivity, activities, setActivities, updateActivity } = useActivity({ periodId: selectedPeriod })
   const { saveRoomPic, roomPic, setRoomPic } = useRoom({ periodId: selectedPeriod })
+  const [keepRoomPic, setKeepRoomPic] = useState(false)
 
   const handleAllocate = useCallback(async () => {
     if (!files.shiftFile || !files.teachingCollegeFile || !files.transactionFile)
@@ -44,15 +45,20 @@ function App() {
     const transactions = await parse<ActivityData>(files.transactionFile)
 
     // Assign Room - PIC Mapping
-    let roomPic = await allocateRoomPIC(staff, acts, transactions)
+    // kalau misalnya user mau keepRoomPIC, tapi kalau tidak mau
+    let newRoomPic = roomPic
+
+    if (!keepRoomPic) {
+      newRoomPic = await allocateRoomPIC(staff, acts, transactions)
+    }
+
 
     // Assign Calibration
-    let result = await allocateCalibration(acts, roomPic, transactions)
+    let result = await allocateCalibration(acts, newRoomPic, transactions)
     while (!result.isSafe) {
-      roomPic = await allocateRoomPIC(staff, acts, transactions)
-      result = await allocateCalibration(acts, roomPic, transactions)
+      newRoomPic = await allocateRoomPIC(staff, acts, transactions)
+      result = await allocateCalibration(acts, newRoomPic, transactions)
     }
-    setRoomPic(roomPic)
     acts = [...acts, ...result.calibrationSchedule]
 
 
@@ -61,7 +67,13 @@ function App() {
     acts = [...acts, ...standBySchedule]
 
     setActivities(acts)
-    await saveRoomPic(roomPic)
+
+    if (newRoomPic !== roomPic) {
+      await saveRoomPic(newRoomPic)
+    }
+
+    setRoomPic(newRoomPic) // ini kan set state jadi data roompic baru, tapi kalau data tidak baru? oh nvm tidak apa apa ttp di set state, krn kalau data tidak baru ya si newRoomPic == roomPic
+
     await saveActivity(acts)
     toast.dismiss(toastId)
     toast.success('Successfully allocated!')
@@ -81,6 +93,8 @@ function App() {
                   setFiles={[setShiftFile, setTeachingCollegeFile, setTransactionFile]}
                   hasAllocated={hasAllocated}
                   onAllocate={handleAllocate}
+                  keepRoomPic={keepRoomPic}
+                  setKeepRoomPic={setKeepRoomPic}
                 />
                 :
                 <div className="flex items-center justify-center py-16">
@@ -119,7 +133,7 @@ function App() {
           <AccordionContent>
             {
               activities.length > 0 &&
-              <ScheduleTable data={activities} />
+              <ScheduleTable data={activities} onUpdateCallback={updateActivity} />
             }
           </AccordionContent>
         </AccordionItem>

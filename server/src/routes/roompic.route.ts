@@ -6,6 +6,7 @@ const router = Router({
 })
 
 router.get('/:periodId', controller.getRoomPics)
+router.get('/:periodId/clear', controller.clearRoomPic)
 router.post('/bulk', controller.createBulkRoomPic)
 router.post('/', controller.createRoomPic)
 

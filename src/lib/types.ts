@@ -31,6 +31,7 @@ type ActivityLegend = {
 }
 
 type ActivityData = {
+  activityId?: number
   description: string
   room: string | null
   day: string
@@ -67,11 +68,14 @@ type Room = {
 interface UploadSectionProps {
   files: UploadedFiles
   setFiles: ((file: File) => void)[]
+  keepRoomPic: boolean
+  setKeepRoomPic: ((keepRoomPic: boolean) => void)
   hasAllocated: boolean
   onAllocate: () => void
 }
 
 interface ChecklistItemProps {
+  title?: string
   stepNumber: number
   completed: boolean
   label: string
@@ -84,6 +88,7 @@ interface ChecklistItemProps {
 
 interface ScheduleTableProps {
   data: ActivityData[]
+  onUpdateCallback: ({ day, id, pic, shift }: { id: string, pic: string, day: string, shift: string }) => Promise<void>
 }
 
 interface HeaderProps {

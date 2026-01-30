@@ -5,8 +5,10 @@ import { Button } from "../ui/button"
 import type { ChecklistItemProps, UploadSectionProps } from "@/lib/types"
 import { memo, useEffect, useState } from "react"
 import { ChecklistItem } from "../ui/checklist-item"
+import { Toggle } from "../ui/toggle"
+import { UserRound, UserRoundCheck } from 'lucide-react'
 
-export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: UploadSectionProps) {
+export function UploadSection({ files, setFiles, hasAllocated, onAllocate, setKeepRoomPic, keepRoomPic }: UploadSectionProps) {
   const { shiftFile, teachingCollegeFile, transactionFile } = files
   const [setShiftFile, setTeachingCollegeFile, setTransactionFile] = setFiles
   const [forceSequential, setForceSequential] = useState(true)
@@ -32,6 +34,10 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: Upl
     }
   }
 
+  const handleOnToggleClicked = () => {
+    setKeepRoomPic(!keepRoomPic)
+  }
+
   const MemoizedChecklistItem = memo((props: ChecklistItemProps) => (<ChecklistItem {...props} />))
 
   return (
@@ -48,6 +54,7 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: Upl
         <CardContent className="space-y-6">
           <div className="space-y-4">
             <MemoizedChecklistItem
+              title="initial:xx,monday:p|m,tuesday:p|m,wednesday:p|m,thursday:p|m,friday:p|m,saturday:p|m,division:Asset|Event|NetSys|Software,team:A|B"
               stepNumber={1}
               label="Upload Working Shift data. Only support csv."
               completed={!!shiftFile}
@@ -57,6 +64,7 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: Upl
               onClick={() => toggleChecklist("_1")}
             />
             <MemoizedChecklistItem
+              title="description:Teaching*|Kelas*,room:xxx(optional),day:1-6,shift:1-6,pic:xx,code:21|22|23|24|99"
               stepNumber={2}
               label="Upload Teaching-College data. Only support csv."
               completed={!!teachingCollegeFile}
@@ -66,6 +74,7 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: Upl
               onClick={() => toggleChecklist("_2")}
             />
             <MemoizedChecklistItem
+              title="description:XXXX8130124,room:xxx(required),day:1-6,shift:1-6,pic:xx,code:99.9"
               stepNumber={3}
               label="Upload Class Transaction data. Only support csv."
               completed={!!transactionFile}
@@ -82,7 +91,14 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate }: Upl
             />
           </div>
         </CardContent>
-        <div className="flex flex-col items-center gap-4">
+        <div className="relative flex flex-row justify-center items-center gap-4 p-4 box-border">
+          {
+            hasAllocated &&
+            <Toggle aria-label="Toggle keep pic" size="sm" variant="outline" className="left-2 hover:cursor-pointer" onClick={handleOnToggleClicked} pressed={keepRoomPic} >
+              {keepRoomPic ? <UserRoundCheck /> : <UserRound />}
+              Keep PIC
+            </Toggle>
+          }
           <Button
             onClick={onAllocate}
             disabled={!shiftFile}
