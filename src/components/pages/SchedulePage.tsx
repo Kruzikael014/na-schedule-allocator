@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { UploadSection } from '../sections/upload-section'
 import type { ActivityData, UploadedFiles } from '../../lib/types'
 import { ScheduleTable } from '../sections/schedule-table'
