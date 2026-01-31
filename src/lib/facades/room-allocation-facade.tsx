@@ -14,7 +14,7 @@ const getRoomCandidates = (room: string, staff: Staff[]): string[] => {
   else return staff.map(s => s.initial)
 }
 
-const roomWeight: Record<string, number> = {
+export const roomWeight: Record<string, number> = {
   '606': 0,
   '601': 3,
   '602': 1,

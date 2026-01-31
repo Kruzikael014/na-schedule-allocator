@@ -1,3 +1,4 @@
+import type { Dispatch, SetStateAction } from "react"
 
 type UploadedFiles = {
   shiftFile?: File
@@ -69,7 +70,7 @@ interface UploadSectionProps {
   files: UploadedFiles
   setFiles: ((file: File) => void)[]
   keepRoomPic: boolean
-  setKeepRoomPic: ((keepRoomPic: boolean) => void)
+  setKeepRoomPic: Dispatch<SetStateAction<boolean>>
   hasAllocated: boolean
   onAllocate: () => void
 }

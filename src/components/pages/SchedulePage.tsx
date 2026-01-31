@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { UploadSection } from '../sections/upload-section'
 import type { ActivityData, UploadedFiles } from '../../lib/types'
 import { ScheduleTable } from '../sections/schedule-table'
@@ -11,6 +11,7 @@ import toast from 'react-hot-toast'
 import useRoom from '@/lib/hooks/use-room'
 import RoomPicTable from '../sections/roompic-table'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion'
+import { roomWeight } from '@/lib/facades/room-allocation-facade'
 
 function App() {
   const [selectedPeriod, setSelectedPeriod] = useState<string | null>(null)
@@ -35,32 +36,28 @@ function App() {
     let acts = []
 
     // Assign Working
-    const { staff, workingSchedule } = await allocateWorking(files.shiftFile)
+    const { staff, workingSchedule } = await allocateWorking(files.shiftFile!)
     acts = [...workingSchedule]
 
     // Assign Teaching + College
-    const teachingCollegeSchedule: ActivityData[] = await allocateTeachingCollege(files.teachingCollegeFile)
+    const teachingCollegeSchedule: ActivityData[] = await allocateTeachingCollege(files.teachingCollegeFile!)
     acts = [...acts, ...teachingCollegeSchedule]
 
-    const transactions = await parse<ActivityData>(files.transactionFile)
+    const transactions = await parse<ActivityData>(files.transactionFile!)
 
     // Assign Room - PIC Mapping
     // kalau misalnya user mau keepRoomPIC, tapi kalau tidak mau
     let newRoomPic = roomPic
 
-    if (!keepRoomPic) {
-      newRoomPic = await allocateRoomPIC(staff, acts, transactions)
-    }
-
+    if (!keepRoomPic) newRoomPic = await allocateRoomPIC(staff, acts, transactions) // reallocate new room-pic if new reallocation doesnt want to keep old room-pic allocation
 
     // Assign Calibration
     let result = await allocateCalibration(acts, newRoomPic, transactions)
     while (!result.isSafe) {
-      newRoomPic = await allocateRoomPIC(staff, acts, transactions)
-      result = await allocateCalibration(acts, newRoomPic, transactions)
+      if (!keepRoomPic) newRoomPic = await allocateRoomPIC(staff, acts, transactions) // reallocate new room-pic if user doesnt want to keep old room-pic allocation
+      result = await allocateCalibration(acts, newRoomPic, transactions) // will still be executed whether the room-pic shuffled or not. If its not shuffled, the first place it gets allocated, the pic and the room must have a eligible schedule, so shuffled or not, the room will always can be calibrated twice by the pic (because they got matched because previously the pic able to calibrate the room twice a week)
     }
     acts = [...acts, ...result.calibrationSchedule]
-
 
     // Assign Standby
     const standBySchedule = await allocateStandby(acts, staff)
@@ -68,7 +65,11 @@ function App() {
 
     setActivities(acts)
 
-    if (newRoomPic !== roomPic) {
+    if (newRoomPic === roomPic) {
+      toast.error("Room-Pic aren't changed!")
+    } else if (newRoomPic.length > Object.keys(roomWeight).length) {
+      toast.error('Got Room-Pic is more than expected!')
+    } else {
       await saveRoomPic(newRoomPic)
     }
 
@@ -77,7 +78,7 @@ function App() {
     await saveActivity(acts)
     toast.dismiss(toastId)
     toast.success('Successfully allocated!')
-  }, [files.shiftFile, files.teachingCollegeFile, files.transactionFile])
+  }, [files.shiftFile, files.teachingCollegeFile, files.transactionFile, keepRoomPic])
 
   return <div className='min-h-screen bg-background'>
     <Header onPeriodChange={handlePeriodChange} selectedPeriod={selectedPeriod} periods={periods} />

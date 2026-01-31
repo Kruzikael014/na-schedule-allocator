@@ -104,7 +104,7 @@ export default function Header({ selectedPeriod, onPeriodChange, periods }: Head
           <div className="md:hidden mt-3 space-y-3 pb-3 border-t border-border/20 pt-3">
             <div className="flex gap-2">
               <Link
-                to="/schedule"
+                to="/"
                 className="flex-1 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border border-border/40 text-center"
                 onClick={() => setIsMenuOpen(false)}
               >

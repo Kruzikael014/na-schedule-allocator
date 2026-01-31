@@ -34,10 +34,6 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate, setKe
     }
   }
 
-  const handleOnToggleClicked = () => {
-    setKeepRoomPic(!keepRoomPic)
-  }
-
   const MemoizedChecklistItem = memo((props: ChecklistItemProps) => (<ChecklistItem {...props} />))
 
   return (
@@ -94,7 +90,7 @@ export function UploadSection({ files, setFiles, hasAllocated, onAllocate, setKe
         <div className="relative flex flex-row justify-center items-center gap-4 p-4 box-border">
           {
             hasAllocated &&
-            <Toggle aria-label="Toggle keep pic" size="sm" variant="outline" className="left-2 hover:cursor-pointer" onClick={handleOnToggleClicked} pressed={keepRoomPic} >
+            <Toggle aria-label="Toggle keep pic" size="sm" variant="outline" className="left-2 hover:cursor-pointer" onPressedChange={setKeepRoomPic} pressed={keepRoomPic} >
               {keepRoomPic ? <UserRoundCheck /> : <UserRound />}
               Keep PIC
             </Toggle>

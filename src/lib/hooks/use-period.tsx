@@ -29,7 +29,7 @@ export default function usePeriod() {
 
   const updatePeriod = async (periodId: string, periodName: string, isPresent: boolean) => {
     const result = await (await API.patch('/period', { periodId, periodName, isPresent })).data
-    toast(result ? 'Period successfully updated!' : 'Failed to update period!')
+    toast(result ? 'Period successfully updated!' : 'Failed to update period!', { duration: 2000 })
     await fetchData()
   }
 
